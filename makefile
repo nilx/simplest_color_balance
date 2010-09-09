@@ -6,25 +6,27 @@
 # the copyright notice and this notice are preserved.  This file is
 # offered as-is, without any warranty.
 
-CSRC	= io_tiff.c normalize_histo_lib.c normalize_histo.c normalize_sort.c
+CSRC	= io_png.c normalize_histo_lib.c normalize_histo.c normalize_sort.c
 
 SRC	= $(CSRC)
 OBJ	= $(CSRC:.c=.o)
 BIN	= normalize_histo normalize_sort
 
 COPT	= -O3 -funroll-loops -fomit-frame-pointer
-CFLAGS	+= -ansi -pedantic -Wall -Wextra -Werror $(CXXOPT)
+CFLAGS	= -ansi -pedantic -Wall -Wextra -Werror $(COPT)
 
 default: $(BIN)
 
 %.o	: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-normalize_histo	: io_tiff.o normalize_histo_lib.o normalize_histo.o
-	$(CC) $(CFLAGS) -o $@ -ltiff $^
+normalize_histo	: io_png.o normalize_histo_lib.o normalize_histo.o
+	$(CC) $(CFLAGS) -o $@ -lpng $^
 
-normalize_sort	: io_tiff.o normalize_sort.o
-	$(CC) $(CFLAGS) -o $@ -ltiff $^
+normalize_sort	: io_png.o normalize_sort.o
+	$(CC) $(CFLAGS) -o $@ -lpng $^
+
+# HOUSEKEEPING
 
 .PHONY	: check
 check	: $(CSRC)

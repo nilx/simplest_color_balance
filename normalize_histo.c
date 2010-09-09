@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "io_tiff.h"
+#include "io_png.h"
 #include "normalize_histo_lib.h"
 
 /**
@@ -54,7 +54,7 @@ int main(int argc, char *const *argv)
     /* wrong number of parameters : simple help info */
     if (4 != argc)
     {
-        fprintf(stderr, "usage : %s S in.tiff out.tiff\n", argv[0]);
+        fprintf(stderr, "usage : %s S in.png out.png\n", argv[0]);
         fprintf(stderr, "        S saturated pixels percentage [0...100[\n");
         return EXIT_FAILURE;
     }
@@ -67,8 +67,8 @@ int main(int argc, char *const *argv)
         return EXIT_FAILURE;
     }
 
-    /* read the TIFF image */
-    if (NULL == (data = read_tiff_rgba_u8(argv[2], &nx, &ny)))
+    /* read the PNG image */
+    if (NULL == (data = read_png_u8_rgb(argv[2], &nx, &ny)))
     {
         fprintf(stderr, "the image could not be properly read\n");
         return EXIT_FAILURE;
@@ -83,8 +83,8 @@ int main(int argc, char *const *argv)
                                   nx * ny * (s / 100. / 2.),
                                   nx * ny * (s / 100. / 2.));
 
-    /* write the TIFF image */
-    write_tiff_rgba_u8(argv[3], data, nx, ny);
+    /* write the PNG image */
+    write_png_u8(argv[3], data, nx, ny, 3);
 
     free(data);
 
