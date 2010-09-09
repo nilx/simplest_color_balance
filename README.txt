@@ -16,12 +16,12 @@ balance" image normalization, as described in IPOL
 * normalize_histo uses an histogram method, more efficient and
   requiring less memory
 
-These programs read TIFF image, then scale the pixel values by an
+These programs read PNG image, then scale the pixel values by an
 affine function such that a user-defined number of pixels are scaled
 over the [0..255] limits. These pixels are replaced by the 0 or 255
-value, and these values are written as a TIFF image.
+value, and these values are written as a PNG image.
 
-Only 8bit RGB TIFF images are handled. Other TIFF files are implicitly
+Only 8bit RGB PNG images are handled. Other PNG files are implicitly
 converted to 8bit color RGB.
 
 # REQUIREMENTS
@@ -29,16 +29,17 @@ converted to 8bit color RGB.
 The code is written in ANSI C, and should compile on any system with
 an ANSI C compiler.
 
-The libtiff header and libraries are required on the system for
-compilation and execution. See http://www.remotesensing.org/libtiff/ 
+The libpng and header and the libpng and zlib libraries are required
+on the system for compilation and execution. See
+http://www.libpng.org/pub/png/libpng.html
 
 # COMPILATION
 
 Simply use the provided makefile, with the command `make`.
 Alternatively, you can manually compile
-    cc io_tiff.c normalize_histo_lib.c normalize_histo.c \
-        -ltiff -o normalize_histo
-    cc io_tiff.c normalize_sort.c -ltiff -o normalize_sort
+    cc io_png.c normalize_histo_lib.c normalize_histo.c \
+        -lpng -o normalize_histo
+    cc io_png.c normalize_sort.c -lpng -o normalize_sort
 
 # USAGE
 

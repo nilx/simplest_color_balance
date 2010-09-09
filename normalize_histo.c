@@ -16,6 +16,13 @@
  */
 
 /**
+ * @mainpage Simplest Color Balance
+ *
+ * README.txt:
+ * @verbinclude README.txt
+ */
+
+/**
  * @file normalize_histo.c
  * @brief histogram-based normalization
  *
