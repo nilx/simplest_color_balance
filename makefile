@@ -26,20 +26,23 @@ normalize_histo	: io_png.o normalize_histo_lib.o normalize_histo.o
 normalize_sort	: io_png.o normalize_sort.o
 	$(CC) $(CFLAGS) -o $@ -lpng $^
 
-# HOUSEKEEPING
-
-.PHONY	: check
-check	: $(CSRC)
-	for F in $^; do \
-		expand $$F > $$F.tmp; \
-		mv $$F.tmp $$F; \
-		indent -kr -bl -bli0 -i4 -l78 -nut -nce -sob -sc $$F; \
-		rm $$F~; \
-		splint -weak $$F; \
-	done
-
 .PHONY	: clean distclean
 clean	:
 	$(RM) $(OBJ)
 distclean	: clean
 	$(RM) $(BIN)
+
+# extra tasks
+.PHONY  : lint beautify release
+lint    : $(CSRC)
+	splint -weak $^;
+beautify        : $(CSRC)
+	for FILE in $^; do \
+		expand $$FILE | sed 's/[ \t]*$$//' > $$FILE.$$$$ \
+		&& indent -kr -bl -bli0 -i4 -l78 -nut -nce -sob -sc \
+		$$FILE.$$$$ -o $$FILE \
+		&& rm $$FILE.$$$$; \
+	done
+release :
+	git archive --format=tar --prefix=retinex_pde/ HEAD \
+		| gzip > ../simplest_color_balance.tar.gz
