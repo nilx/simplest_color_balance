@@ -44,7 +44,7 @@ static int cmp_u8(const void *a, const void *b)
 /**
  * @brief main function call
  *
- * The saturation is processed half at both ends of the histogram. 
+ * The saturation is processed half at both ends of the histogram.
  */
 int main(int argc, char *const *argv)
 {

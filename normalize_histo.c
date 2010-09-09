@@ -36,7 +36,7 @@
 /**
  * @brief main function call
  *
- * The saturation is processed half at both ends of the histogram. 
+ * The saturation is processed half at both ends of the histogram.
  */
 int main(int argc, char *const *argv)
 {
