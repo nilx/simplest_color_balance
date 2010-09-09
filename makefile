@@ -44,5 +44,5 @@ beautify        : $(CSRC)
 		&& rm $$FILE.$$$$; \
 	done
 release :
-	git archive --format=tar --prefix=retinex_pde/ HEAD \
+	git archive --format=tar --prefix=simplest_color_balance/ HEAD \
 		| gzip > ../simplest_color_balance.tar.gz
