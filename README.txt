@@ -50,6 +50,8 @@ The programs takes 3 parameters: `program S in out`
 * `in`      : input image
 * `out`     : output image
 
+An example image is provided is the `data` folder.
+
 # ABOUT THIS FILE
 
 Copyright 2009, 2010 IPOL Image Processing On Line http://www.ipol.im/
