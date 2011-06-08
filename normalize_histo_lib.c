@@ -83,7 +83,7 @@ static void minmax_u8(const unsigned char *data, size_t size,
  * @param nb_min, nb_max number of pixels to flatten
  * @param ptr_min, ptr_max computed min/max output, ignored if NULL
  */
-static void minmax_histo_u8(unsigned char *data, size_t size,
+ void minmax_histo_u8(unsigned char *data, size_t size,
                             size_t nb_min, size_t nb_max,
                             unsigned char *ptr_min, unsigned char *ptr_max)
 {
@@ -139,6 +139,8 @@ static void minmax_histo_u8(unsigned char *data, size_t size,
         while (histo_ptr < histo_end && *histo_ptr <= nb_min)
             histo_ptr++;
         /* the corresponding histogram value is the current cell indice */
+        if(histo_ptr > histo)
+           histo_ptr --;
         *ptr_min = histo_ptr - histo;
     }
 
@@ -162,6 +164,7 @@ static void minmax_histo_u8(unsigned char *data, size_t size,
     return;
 }
 
+
 /**
  * @brief normalize an unsigned char array
  *
@@ -183,9 +186,9 @@ unsigned char *normalize_histo_u8(unsigned char *data, size_t size,
                                   size_t flat_nb_min, size_t flat_nb_max)
 {
     unsigned char *data_ptr, *data_end;
-    unsigned char min, max;
     float scale;
     unsigned char target_mid;
+    unsigned char min, max;
 
     /* sanity checks */
     if (NULL == data)
@@ -255,3 +258,167 @@ unsigned char *normalize_histo_u8(unsigned char *data, size_t size,
     }
     return data;
 }
+
+/**
+ * @brief normalize an unsigned char array
+ *
+ * This function operates in-place. Given the minimum value, it computes the
+ * maximum values of the data, and rescales the data to the target
+ * minimum and maximum, with optionnally flattening some extremal
+ * pixels.
+ *
+ * @param data input/output array
+ * @param size array size
+ * @param target_min, target_max target min/max values
+ * @param min the minimum of the input array
+ * @param flat_nb_max number extremal pixels flattened
+ *
+ * @return data
+ */
+
+unsigned char *normalize_histo_u8_gray(unsigned char *data, size_t size,
+                                  unsigned char target_min,
+                                  unsigned char target_max,
+                                  unsigned char min, unsigned char max )
+{
+
+ unsigned char *data_ptr, *data_end;
+    float scale;
+    unsigned char target_mid;
+    
+
+
+    /* sanity checks */
+    if (NULL == data)
+    {
+        fprintf(stderr, "a pointer is NULL and should not be so\n");
+        abort();
+    }
+     data_ptr = data;
+    data_end = data_ptr + size;
+
+    /* target_max == target_min : shortcut */
+    if (target_max == target_min)
+    {
+        while (data_ptr < data_end)
+            *data_ptr++ = target_min;
+        return data;
+    }
+    
+     /* printf("min=%d  max=%d\n", min, max);*/
+   if (max <= min)
+    {
+        target_mid = (target_max + target_min) / 2;
+        while (data_ptr < data_end)
+            *data_ptr++ = target_mid;
+    }
+    else
+    {
+         unsigned char norm[UCHAR_MAX + 1];
+        size_t i;
+
+        scale = (float) (target_max - target_min) / (float) (max - min);
+        for (i = 0; i < min; i++)
+            norm[i] = target_min;
+        for (i = min; i < max; i++)
+            norm[i] = (unsigned char) ((i - min) * scale + target_min);
+        for (i = max; i < UCHAR_MAX + 1; i++)
+            norm[i] = target_max;
+        /* use the normalization table to transform the data */
+        while (data_ptr < data_end)
+        {
+           *data_ptr = norm[(size_t) (*data_ptr)];
+            data_ptr++;
+        }
+    
+     
+   }
+
+
+    return data;
+}
+
+/**
+*  @brief computes the R G B components of the output image from its gray level 
+*
+*   Given a color image C=(R, G, B), given its gray level
+*
+* @f$ gray=(R+G+B)/3 \f$
+*
+* Given a modified gray image gray1
+*
+* This function computes an output color image C1=(R1,G1,B1) where each channel is proportional 
+* to the input channel and whose gray level is gray1, 
+*
+* @f$ R1=\frac{gray1}{gray} R    G1=\frac{gray1}{gray} G    B1= \frac{gray1}{gray} B \f$
+*
+* Note that if the factor gray/gray1 is too big the colors may be saturated to the faces of the RGB cube
+*
+* @param data_out Output color image
+* @param data input color image
+* @param gray gray level of the input color image
+* @param gray1 modified gray image
+* @param dim size of the image
+*
+* @return data_out
+*/
+
+void color_u8(unsigned char *data_out, unsigned char *data, unsigned char *gray, unsigned char *gray1, size_t dim)
+{
+     
+        unsigned char *ptr_red, *ptr_green, *ptr_blue;
+        unsigned char *ptr_end,*ptr_gray, *ptr_gray1;
+        unsigned char *ptr_in_red, *ptr_in_green, *ptr_in_blue;
+        float A,B, rr, gg, bb;
+	int ir, ig, ib;
+       
+ /* sanity check*/
+       if (NULL == data_out || NULL == data || NULL== gray || NULL== gray1)
+       {
+        fprintf(stderr, "a pointer is NULL and should not be so\n");
+        abort();
+       }
+
+       
+        
+        ptr_gray=gray;
+        ptr_gray1=gray1;
+        ptr_end=ptr_gray+dim;
+        ptr_red=data_out;
+        ptr_green=data_out+dim;
+        ptr_blue=data_out+2*dim;
+       
+        ptr_in_red=data; ptr_in_green=data+dim; ptr_in_blue=data+2*dim;
+        while(ptr_gray< ptr_end){
+	   if(*ptr_gray != 0) A=(float) *ptr_gray1/ (float) *ptr_gray;
+	   else A=0;
+           
+            rr=A* (float) (*ptr_in_red); 
+            gg=A* (float) (*ptr_in_green);
+            bb=A* (float) (*ptr_in_blue);
+           if( rr > 255. || gg > 255. || bb > 255.){
+               B=*ptr_in_red;
+               if(*ptr_in_green > B) B=*ptr_in_green;
+               if( *ptr_in_blue > B) B=*ptr_in_blue;
+               A= 255. /B;
+               rr=A* (float) (*ptr_in_red);
+               gg=A* (float) (*ptr_in_green);
+               bb=A* (float) (*ptr_in_blue);
+           }
+	   ir=(int) (rr+0.5f);
+	   ig=(int) (gg+0.5f);
+	   ib=(int) (bb+0.5f);
+	   *ptr_red=(unsigned char) ir;
+	   *ptr_green=(unsigned char) ig;
+	   *ptr_blue=(unsigned char) ib;
+
+           ptr_gray++; ptr_gray1++; ptr_red++; ptr_green++; ptr_blue++;
+           ptr_in_red++;  ptr_in_green++; ptr_in_blue++;
+        }
+
+}
+
+
+
+
+

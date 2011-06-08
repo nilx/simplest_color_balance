@@ -8,7 +8,7 @@
 
 # OVERVIEW
 
-This source code provides two implementation of the "simplest color
+This source code provides two implementations of the "simplest color
 balance" image normalization, as described in IPOL
     http://www.ipol.im/pub/algo/lmps_simplest_color_balance/
 
@@ -16,7 +16,7 @@ balance" image normalization, as described in IPOL
 * normalize_histo uses an histogram method, more efficient and
   requiring less memory
 
-These programs read PNG image, then scale the pixel values by an
+This program reads PNG image, then scale the pixel values by an
 affine function such that a user-defined number of pixels are scaled
 over the [0..255] limits. These pixels are replaced by the 0 or 255
 value, and these values are written as a PNG image.
@@ -39,18 +39,24 @@ Simply use the provided makefile, with the command `make`.
 Alternatively, you can manually compile
     cc io_png.c normalize_histo_lib.c normalize_histo.c \
         -lpng -o normalize_histo
-    cc io_png.c normalize_sort.c -lpng -o normalize_sort
 
 # USAGE
 
-The programs takes 3 parameters: `program S in out`
+'normalize_sort' takes 3 parameters: `normalize_sort S in out`
 
-* `program` : normalize_histo or normalize_sort
 * `S`       : saturated pixels percentage [0...100[
 * `in`      : input image
 * `out`     : output image
 
-An example image is provided is the `data` folder.
+
+'normalize_histo' takes 5 parameters: `normalize_histo S1 S2 in out1 out2`
+
+* `S1`       : percentage of pixels saturated to 0 in the output image [0...100[
+* `S2`       : percentage of pixels saturated to 255 in the output image [0...100[
+* `in`      : input image
+* `out1`     : output image, each color channel processed independently
+* `out2`     : output image, R/G/B ratios of the original image preserved 
+
 
 # ABOUT THIS FILE
 
@@ -61,3 +67,4 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.  This file is offered as-is,
 without any warranty.
+

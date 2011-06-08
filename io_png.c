@@ -679,3 +679,4 @@ int write_png_f32(const char *fname, const float *data,
                          (png_uint_32) nx, (png_uint_32) ny, (png_byte) nc,
                          IO_PNG_F32);
 }
+

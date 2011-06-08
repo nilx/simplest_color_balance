@@ -25,3 +25,4 @@ int write_png_f32(const char *fname, const float *data, size_t nx, size_t ny, si
 #endif
 
 #endif /* !_IO_PNG_H */
+
