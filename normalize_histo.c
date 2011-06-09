@@ -57,7 +57,7 @@ int main(int argc, char *const *argv)
     int channel, ii;
     unsigned char min, ming,maxg;
     
-    int per_r0, per_g0, per_b0;
+    size_t per_r0, per_g0, per_b0;
     float fI;
     size_t n;
 
@@ -85,7 +85,7 @@ int main(int argc, char *const *argv)
     }
 
     /* read the PNG image */
-    if (NULL == (data = read_png_u8_rgb(argv[3], &nx, &ny)))
+    if (NULL == (data = io_png_read_u8_rgb(argv[3], &nx, &ny)))
     {
         fprintf(stderr, "the image could not be properly read\n");
         return EXIT_FAILURE;
@@ -140,7 +140,7 @@ int main(int argc, char *const *argv)
         minmax_histo_u8(I,nx*ny, nx*ny*(s1/100.), nx*ny*(s2/100.), &ming, &maxg);
         maxg=255;
         do{
-             normalize_histo_u8_gray(Inew, nx*ny, 0,255, ming, maxg);
+	    (void) normalize_histo_u8_gray(Inew, nx*ny, 0,255, ming, maxg);
              color_u8(data3, data2, I, Inew, nx*ny);
             per_r0=0; per_g0=0; per_b0=0;
             for(n=0; n < (int) nx*ny; n++) {
@@ -175,7 +175,7 @@ int main(int argc, char *const *argv)
       
         do{
             /* normalize the gray intensity with the ming and maxg*/
-            normalize_histo_u8_gray(Inew, nx*ny, 0,255, ming, maxg);
+            (void) normalize_histo_u8_gray(Inew, nx*ny, 0,255, ming, maxg);
         /* compute each channel for the new gray*/
 
              color_u8(data3, data2, I, Inew, nx*ny);
@@ -195,8 +195,8 @@ int main(int argc, char *const *argv)
 
 
     /* write the PNG image */
-    write_png_u8(argv[4], data, nx, ny, 3);
-    write_png_u8(argv[5], data3, nx, ny, 3);
+    io_png_write_u8(argv[4], data, nx, ny, 3);
+    io_png_write_u8(argv[5], data3, nx, ny, 3);
 
     free(data);
     free(data2);

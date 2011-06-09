@@ -397,9 +397,9 @@ void color_u8(unsigned char *data_out, unsigned char *data, unsigned char *gray,
             gg=A* (float) (*ptr_in_green);
             bb=A* (float) (*ptr_in_blue);
            if( rr > 255. || gg > 255. || bb > 255.){
-               B=*ptr_in_red;
-               if(*ptr_in_green > B) B=*ptr_in_green;
-               if( *ptr_in_blue > B) B=*ptr_in_blue;
+               B= (float) *ptr_in_red;
+               if((float) *ptr_in_green > B) B= (float) *ptr_in_green;
+               if((float) *ptr_in_blue > B) B= (float) *ptr_in_blue;
                A= 255. /B;
                rr=A* (float) (*ptr_in_red);
                gg=A* (float) (*ptr_in_green);

@@ -77,7 +77,7 @@ int main(int argc, char *const *argv)
     }
 
     /* read the TIFF image */
-    if (NULL == (data = read_png_u8_rgb(argv[2], &nx, &ny)))
+    if (NULL == (data = io_png_read_u8_rgb(argv[2], &nx, &ny)))
     {
         fprintf(stderr, "the image could not be properly read\n");
         return EXIT_FAILURE;
@@ -148,7 +148,7 @@ int main(int argc, char *const *argv)
         }
     }
     /* write the TIFF image */
-    write_png_u8(argv[3], data, nx, ny, 3);
+    io_png_write_u8(argv[3], data, nx, ny, 3);
 
     free(data);
     free(tmpdata);
