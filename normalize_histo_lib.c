@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, 2010 IPOL Image Processing On Line http://www.ipol.im/
+ * Copyright 2009-2011 IPOL Image Processing On Line http://www.ipol.im/
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@
  * @brief normalization routines using an histogram algorithm
  *
  * @author Nicolas Limare <nicolas.limare@cmla.ens-cachan.fr>
+ * @author Jose-Luis Lisani <joseluis.lisani@uib.es>
+ * @author Catalina Sbert <catalina.sbert@uib.es>
  */
 
 #include <stdlib.h>
