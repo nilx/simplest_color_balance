@@ -6,13 +6,13 @@
 # offered as-is, without any warranty.
 
 # source code, C language
-CSRC	= io_png.c normalize_histo_lib.c normalize_histo.c normalize_sort.c
+CSRC	= io_png.c balance_lib.c balance.c
 # source code, all languages (only C here)
 SRC	= $(CSRC)
 # object files (partial compilation)
 OBJ	= $(CSRC:.c=.o)
 # binary executable programs
-BIN	= normalize_histo normalize_sort
+BIN	= normalize_histo
 
 # standard C compiler optimization options
 COPT	= -O3 -funroll-loops -fomit-frame-pointer -ffast-math
@@ -29,9 +29,7 @@ default: $(BIN)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 # final link
-normalize_histo	: io_png.o normalize_histo_lib.o normalize_histo.o
-	$(CC) $^ $(LDFLAGS) -o $@
-normalize_sort	: io_png.o normalize_sort.o
+normalize_histo	: io_png.o balance_lib.o balance.o
 	$(CC) $^ $(LDFLAGS) -o $@
 
 # cleanup

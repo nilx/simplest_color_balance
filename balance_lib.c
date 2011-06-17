@@ -16,8 +16,8 @@
  */
 
 /**
- * @file normalize_histo_lib.c
- * @brief normalization routines using an histogram algorithm
+ * @file balance_lib.c
+ * @brief simple color balance routines
  *
  * @author Nicolas Limare <nicolas.limare@cmla.ens-cachan.fr>
  * @author Jose-Luis Lisani <joseluis.lisani@uib.es>
@@ -28,6 +28,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <limits.h>
+
+/* encure consistency */
+#include "balance_lib.h"
 
 /**
  * @brief get the min/max of an unsigned char array
@@ -83,9 +86,9 @@ static void minmax_u8(const unsigned char *data, size_t size,
  * @param nb_min, nb_max number of pixels to flatten
  * @param ptr_min, ptr_max computed min/max output, ignored if NULL
  */
-void minmax_histo_u8(unsigned char *data, size_t size,
-                     size_t nb_min, size_t nb_max,
-                     unsigned char *ptr_min, unsigned char *ptr_max)
+void quantiles_u8(unsigned char *data, size_t size,
+                  size_t nb_min, size_t nb_max,
+                  unsigned char *ptr_min, unsigned char *ptr_max)
 {
     unsigned char *data_ptr, *data_end;
     /*
@@ -174,10 +177,10 @@ void minmax_histo_u8(unsigned char *data, size_t size,
  *
  * @return data
  */
-unsigned char *normalize_histo_u8(unsigned char *data, size_t size,
-                                  unsigned char target_min,
-                                  unsigned char target_max,
-                                  size_t flat_nb_min, size_t flat_nb_max)
+unsigned char *balance_u8(unsigned char *data, size_t size,
+                          unsigned char target_min,
+                          unsigned char target_max,
+                          size_t flat_nb_min, size_t flat_nb_max)
 {
     unsigned char *data_ptr, *data_end;
     float scale;
@@ -209,7 +212,7 @@ unsigned char *normalize_histo_u8(unsigned char *data, size_t size,
 
     if (0 != flat_nb_min || 0 != flat_nb_max)
         /* get the min/max from the histogram */
-        minmax_histo_u8(data, size, flat_nb_min, flat_nb_max, &min, &max);
+        quantiles_u8(data, size, flat_nb_min, flat_nb_max, &min, &max);
     else
         /* get the min/max from the data */
         minmax_u8(data, size, &min, &max);
@@ -264,10 +267,10 @@ unsigned char *normalize_histo_u8(unsigned char *data, size_t size,
  * @return data
  */
 
-unsigned char *normalize_histo_u8_gray(unsigned char *data, size_t size,
-                                       unsigned char target_min,
-                                       unsigned char target_max,
-                                       unsigned char min, unsigned char max)
+unsigned char *balance_u8_gray(unsigned char *data, size_t size,
+                               unsigned char target_min,
+                               unsigned char target_max,
+                               unsigned char min, unsigned char max)
 {
 
     unsigned char *data_ptr, *data_end;

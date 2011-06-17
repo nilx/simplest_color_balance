@@ -23,8 +23,8 @@
  */
 
 /**
- * @file normalize_histo.c
- * @brief histogram-based normalization
+ * @file balance.c
+ * @brief simplest color balance
  *
  * The input image is normalized to [0-255], saturating a percentage
  * of the pixels at the beginning and end of the color space, using a
@@ -40,7 +40,7 @@
 #include <string.h>
 
 #include "io_png.h"
-#include "normalize_histo_lib.h"
+#include "balance_lib.h"
 
 /**
  * @brief main function call
@@ -99,9 +99,8 @@ int main(int argc, char *const *argv)
      * we saturate s% pixels, half on both sides of the histogram
      */
     for (channel = 0; channel < 3; channel++) {
-        (void) normalize_histo_u8(data + channel * nx * ny, nx * ny, 0, 255,
-                                  nx * ny * (s1 / 100.),
-                                  nx * ny * (s2 / 100.));
+        (void) balance_u8(data + channel * nx * ny, nx * ny, 0, 255,
+                          nx * ny * (s1 / 100.), nx * ny * (s2 / 100.));
 
     }
 
@@ -140,11 +139,11 @@ int main(int argc, char *const *argv)
         || per_b0 > nx * ny * (s1 / 100.))
         ming = 0;
     else {
-        minmax_histo_u8(I, nx * ny, nx * ny * (s1 / 100.),
-                        nx * ny * (s2 / 100.), &ming, &maxg);
+        quantiles_u8(I, nx * ny, nx * ny * (s1 / 100.),
+                     nx * ny * (s2 / 100.), &ming, &maxg);
         maxg = 255;
         do {
-            (void) normalize_histo_u8_gray(Inew, nx * ny, 0, 255, ming, maxg);
+            (void) balance_u8_gray(Inew, nx * ny, 0, 255, ming, maxg);
             color_u8(data3, data2, I, Inew, nx * ny);
             per_r0 = 0;
             per_g0 = 0;
@@ -190,12 +189,12 @@ int main(int argc, char *const *argv)
         || per_b0 > nx * ny * (s2 / 100.))
         maxg = 255;
     else {
-        minmax_histo_u8(I, nx * ny, nx * ny * (s1 / 100.),
-                        nx * ny * (s2 / 100.), &min, &maxg);
+        quantiles_u8(I, nx * ny, nx * ny * (s1 / 100.),
+                     nx * ny * (s2 / 100.), &min, &maxg);
 
         do {
             /* normalize the gray intensity with the ming and maxg */
-            (void) normalize_histo_u8_gray(Inew, nx * ny, 0, 255, ming, maxg);
+            (void) balance_u8_gray(Inew, nx * ny, 0, 255, ming, maxg);
             /* compute each channel for the new gray */
 
             color_u8(data3, data2, I, Inew, nx * ny);
