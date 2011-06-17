@@ -55,14 +55,12 @@ int main(int argc, char *const *argv)
     int channel;
 
     /* "-v" option : version info */
-    if (2 <= argc && 0 == strcmp("-v", argv[1]))
-    {
+    if (2 <= argc && 0 == strcmp("-v", argv[1])) {
         fprintf(stdout, "%s version " __DATE__ "\n", argv[0]);
         return EXIT_SUCCESS;
     }
     /* wrong number of parameters : simple help info */
-    if (4 != argc)
-    {
+    if (4 != argc) {
         fprintf(stderr, "usage : %s S in.png out.png\n", argv[0]);
         fprintf(stderr, "        S saturated pixels percentage [0...100[\n");
         return EXIT_FAILURE;
@@ -70,23 +68,20 @@ int main(int argc, char *const *argv)
 
     /* flattening percentage */
     s = atof(argv[1]);
-    if (0. > s || 100. <= s)
-    {
+    if (0. > s || 100. <= s) {
         fprintf(stderr, "the saturation percentage must be in [0..100[\n");
         return EXIT_FAILURE;
     }
 
     /* read the TIFF image */
-    if (NULL == (data = io_png_read_u8_rgb(argv[2], &nx, &ny)))
-    {
+    if (NULL == (data = io_png_read_u8_rgb(argv[2], &nx, &ny))) {
         fprintf(stderr, "the image could not be properly read\n");
         return EXIT_FAILURE;
     }
 
     /* allocate a temporary array for sorting */
     if (NULL == (tmpdata = (unsigned char *)
-                 malloc(nx * ny * sizeof(unsigned char))))
-    {
+                 malloc(nx * ny * sizeof(unsigned char)))) {
         fprintf(stderr, "allocation error\n");
         free(data);
         return EXIT_FAILURE;
@@ -96,8 +91,7 @@ int main(int argc, char *const *argv)
      * do normalization on RGB channels
      * we saturate s% pixels, half on both sides of the histogram
      */
-    for (channel = 0; channel < 3; channel++)
-    {
+    for (channel = 0; channel < 3; channel++) {
         float scale;
         unsigned char min, max;
         unsigned char norm[UCHAR_MAX + 1];
@@ -116,13 +110,11 @@ int main(int argc, char *const *argv)
 
         /* rescale */
         /* max <= min : constant output */
-        if (max <= min)
-        {
+        if (max <= min) {
             for (i = 0; i < UCHAR_MAX + 1; i++)
                 norm[i] = 128;
         }
-        else
-        {
+        else {
             /*
              * build an bounded affine normalization table
              * such that norm(min) = target_min
@@ -140,8 +132,7 @@ int main(int argc, char *const *argv)
             /* use the normalization table to transform the data */
             data_ptr = data + channel * nx * ny;
             data_end = data_ptr + nx * ny;
-            while (data_ptr < data_end)
-            {
+            while (data_ptr < data_end) {
                 *data_ptr = norm[(size_t) (*data_ptr)];
                 data_ptr++;
             }
