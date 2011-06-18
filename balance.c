@@ -16,13 +16,6 @@
  */
 
 /**
- * @mainpage Simplest Color Balance
- *
- * README.txt:
- * @verbinclude README.txt
- */
-
-/**
  * @file balance.c
  * @brief simplest color balance
  *
