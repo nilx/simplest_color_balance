@@ -12,7 +12,7 @@ SRC	= $(CSRC)
 # object files (partial compilation)
 OBJ	= $(CSRC:.c=.o)
 # binary executable programs
-BIN	= normalize_histo
+BIN	= balance
 
 # standard C compiler optimization options
 COPT	= -O3 -funroll-loops -fomit-frame-pointer -ffast-math
@@ -29,7 +29,7 @@ default: $(BIN)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 # final link
-normalize_histo	: io_png.o balance_lib.o balance.o
+balance	: io_png.o balance_lib.o balance.o
 	$(CC) $^ $(LDFLAGS) -o $@
 
 # cleanup
