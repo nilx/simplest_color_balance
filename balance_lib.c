@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <limits.h>
+#include <string.h>
 
 /* encure consistency */
 #include "balance_lib.h"
@@ -42,8 +43,8 @@
 static void minmax_u8(const unsigned char *data, size_t size,
                       unsigned char *ptr_min, unsigned char *ptr_max)
 {
-    const unsigned char *ptr_data, *ptr_end;
     unsigned char min, max;
+    size_t i;
 
     /* sanity check */
     if (NULL == data) {
@@ -52,17 +53,13 @@ static void minmax_u8(const unsigned char *data, size_t size,
     }
 
     /* compute min and max */
-    ptr_data = data;
-    ptr_end = ptr_data + size;
-    min = *ptr_data;
-    max = *ptr_data;
-    ptr_data++;
-    while (ptr_data < ptr_end) {
-        if (*ptr_data < min)
-            min = *ptr_data;
-        if (*ptr_data > max)
-            max = *ptr_data;
-        ptr_data++;
+    min = data[0];
+    max = data[0];
+    for (i = 1; i < size; i++) {
+        if (data[i] < min)
+            min = data[i];
+        if (data[i] > max)
+            max = data[i];
     }
 
     /* save min and max to the returned pointers if available */
@@ -90,13 +87,13 @@ void quantiles_u8(unsigned char *data, size_t size,
                   size_t nb_min, size_t nb_max,
                   unsigned char *ptr_min, unsigned char *ptr_max)
 {
-    unsigned char *data_ptr, *data_end;
     /*
      * the histogran must hold all possible "unsigned char" values,
      * including 0
      */
+    size_t h_size = UCHAR_MAX + 1;
     size_t histo[UCHAR_MAX + 1];
-    size_t *histo_ptr, *histo_end;
+    size_t i;
 
     /* sanity check */
     if (NULL == data) {
@@ -111,52 +108,45 @@ void quantiles_u8(unsigned char *data, size_t size,
     }
 
     /* set the histogram to 0 */
-    histo_ptr = histo;
-    histo_end = histo_ptr + UCHAR_MAX + 1;
-    while (histo_ptr < histo_end)
-        *histo_ptr++ = 0;
-    /* make an histogram */
-    data_ptr = data;
-    data_end = data_ptr + size;
-    while (data_ptr < data_end)
-        histo[(size_t) (*data_ptr++)] += 1;
+    memset(histo, 0x00, h_size * sizeof(size_t));
 
-    /* reset the histogram pointer to the second histogram value */
-    histo_ptr = histo + 1;
+    /* make an histogram */
+    for (i = 0; i < size; i++)
+        histo[(size_t) data[i]] += 1;
+
     /* convert the histogram to a cumulative histogram */
-    while (histo_ptr < histo_end) {
-        *histo_ptr += *(histo_ptr - 1);
-        histo_ptr++;
-    }
+    for (i = 1; i < h_size; i++)
+        histo[i] += histo[i - 1];
 
     /* get the new min/max */
 
     if (NULL != ptr_min) {
         /* simple forward traversal of the cumulative histogram */
         /* search the first value > flat_nb_min */
-        histo_ptr = histo;
-        while (histo_ptr < histo_end && *histo_ptr <= nb_min)
-            histo_ptr++;
+        i = 0;
+        while (i < h_size && histo[i] <= nb_min)
+            i++;
         /* the corresponding histogram value is the current cell indice */
-        if (histo_ptr > histo)
-            histo_ptr--;
-        *ptr_min = histo_ptr - histo;
+        if (i > 0)
+            i--;
+        *ptr_min = (unsigned char) i;
     }
 
     if (NULL != ptr_max) {
         /* simple backward traversal of the cumulative histogram */
         /* search the first value <= size - nb_max */
-        histo_ptr = histo_end - 1;
-        while (histo_ptr >= histo && *histo_ptr > (size - nb_max))
-            histo_ptr--;
+        i = h_size - 1;
+        /* i is unsigned, we check i<h_size instead of i>=0 */
+        while (i < h_size && histo[i] > (size - nb_max))
+            i--;
         /*
          * if we are not at the end of the histogram,
          * get to the next cell,
          * ie the last (backward) value > size - flat_nb_max
          */
-        if (histo_ptr < histo_end - 1)
-            histo_ptr++;
-        *ptr_max = histo_ptr - histo;
+        if (i < h_size - 1)
+            i++;
+        *ptr_max = (unsigned char) i;
     }
 
     return;
@@ -176,16 +166,16 @@ void quantiles_u8(unsigned char *data, size_t size,
  * @param flat_nb_min, flat_nb_max number extremal pixels flattened
  *
  * @return data
+ *
+ * @todo hardcode target_*
  */
 unsigned char *balance_u8(unsigned char *data, size_t size,
                           unsigned char target_min,
                           unsigned char target_max,
                           size_t flat_nb_min, size_t flat_nb_max)
 {
-    unsigned char *data_ptr, *data_end;
-    float scale;
-    unsigned char target_mid;
     unsigned char min, max;
+    size_t i;
 
     /* sanity checks */
     if (NULL == data) {
@@ -199,14 +189,10 @@ unsigned char *balance_u8(unsigned char *data, size_t size,
         fprintf(stderr, "using (size - 1) / 2\n");
     }
 
-    /* setup iteration pointers */
-    data_ptr = data;
-    data_end = data_ptr + size;
-
     /* target_max == target_min : shortcut */
     if (target_max == target_min) {
-        while (data_ptr < data_end)
-            *data_ptr++ = target_min;
+        for (i = 0; i < size; i++)
+            data[i] = target_min;
         return data;
     }
 
@@ -220,9 +206,10 @@ unsigned char *balance_u8(unsigned char *data, size_t size,
     /* rescale */
     /* max <= min : constant output */
     if (max <= min) {
+        unsigned char target_mid;
         target_mid = (target_max + target_min) / 2;
-        while (data_ptr < data_end)
-            *data_ptr++ = target_mid;
+        for (i = 0; i < size; i++)
+            data[i] = target_mid;
     }
     else {
         /*
@@ -231,8 +218,8 @@ unsigned char *balance_u8(unsigned char *data, size_t size,
          *           norm(max) = target_max
          * norm(x) = (x - min) * (t_max - t_min) / (max - min) + t_min
          */
+        float scale;
         unsigned char norm[UCHAR_MAX + 1];
-        size_t i;
 
         scale = (float) (target_max - target_min) / (float) (max - min);
         for (i = 0; i < min; i++)
@@ -242,10 +229,8 @@ unsigned char *balance_u8(unsigned char *data, size_t size,
         for (i = max; i < UCHAR_MAX + 1; i++)
             norm[i] = target_max;
         /* use the normalization table to transform the data */
-        while (data_ptr < data_end) {
-            *data_ptr = norm[(size_t) (*data_ptr)];
-            data_ptr++;
-        }
+        for (i = 0; i < size; i++)
+            data[i] = norm[(size_t) data[i]];
     }
     return data;
 }
@@ -253,10 +238,9 @@ unsigned char *balance_u8(unsigned char *data, size_t size,
 /**
  * @brief normalize an unsigned char array
  *
- * This function operates in-place. Given the minimum value, it computes the
- * maximum values of the data, and rescales the data to the target
- * minimum and maximum, with optionnally flattening some extremal
- * pixels.
+ * This function operates in-place. It rescales the data by a bounded
+ * affine function such that min becomes target_min and max becomes
+ * target_max.
  *
  * @param data input/output array
  * @param size array size
@@ -265,6 +249,8 @@ unsigned char *balance_u8(unsigned char *data, size_t size,
  * @param flat_nb_max number extremal pixels flattened
  *
  * @return data
+ *
+ * @todo hardcode target_*
  */
 
 unsigned char *balance_u8_gray(unsigned char *data, size_t size,
@@ -272,35 +258,31 @@ unsigned char *balance_u8_gray(unsigned char *data, size_t size,
                                unsigned char target_max,
                                unsigned char min, unsigned char max)
 {
-
-    unsigned char *data_ptr, *data_end;
-    float scale;
-    unsigned char target_mid;
+    size_t i;
 
     /* sanity checks */
     if (NULL == data) {
         fprintf(stderr, "a pointer is NULL and should not be so\n");
         abort();
     }
-    data_ptr = data;
-    data_end = data_ptr + size;
 
     /* target_max == target_min : shortcut */
     if (target_max == target_min) {
-        while (data_ptr < data_end)
-            *data_ptr++ = target_min;
+        for (i = 0; i < size; i++)
+            data[i] = target_min;
         return data;
     }
 
     /* printf("min=%d  max=%d\n", min, max); */
     if (max <= min) {
+        unsigned char target_mid;
         target_mid = (target_max + target_min) / 2;
-        while (data_ptr < data_end)
-            *data_ptr++ = target_mid;
+        for (i = 0; i < size; i++)
+            data[i] = target_mid;
     }
     else {
+        float scale;
         unsigned char norm[UCHAR_MAX + 1];
-        size_t i;
 
         scale = (float) (target_max - target_min) / (float) (max - min);
         for (i = 0; i < min; i++)
@@ -310,34 +292,29 @@ unsigned char *balance_u8_gray(unsigned char *data, size_t size,
         for (i = max; i < UCHAR_MAX + 1; i++)
             norm[i] = target_max;
         /* use the normalization table to transform the data */
-        while (data_ptr < data_end) {
-            *data_ptr = norm[(size_t) (*data_ptr)];
-            data_ptr++;
-        }
-
+        for (i = 0; i < size; i++)
+            data[i] = norm[(size_t) data[i]];
     }
 
     return data;
 }
 
 /**
-*  @brief computes the R G B components of the output image from its gray level
+* @brief computes the R G B components of the output image from its
+* gray level
 *
-*   Given a color image C=(R, G, B), given its gray level
+* Given a color image C=(R, G, B) and its intensity I=(R+G+B)/3 and a
+* modified intensity I', this function computes an output color image
+* C'=(R', G', B') where each channel is proportional to the input
+* channel and whose intensity is I': R'=I'/I R, G'=I'/I G, B'=I'/I B
 *
-* @f$ gray=(R+G+B)/3 \f$
+* If the factor I'/I is too large the colors may be saturated to the
+* faces of the RGB cube.
 *
-* Given a modified gray image gray1
+* @todo fix algo bug, the output image intensity is not I'
 *
-* This function computes an output color image C1=(R1,G1,B1) where each channel is proportional
-* to the input channel and whose gray level is gray1,
-*
-* @f$ R1=\frac{gray1}{gray} R    G1=\frac{gray1}{gray} G    B1= \frac{gray1}{gray} B \f$
-*
-* Note that if the factor gray/gray1 is too big the colors may be saturated to the faces of the RGB cube
-*
-* @param data_out Output color image
-* @param data input color image
+* @param data_out output color image
+* @param data_in input color image
 * @param gray gray level of the input color image
 * @param gray1 modified gray image
 * @param dim size of the image
@@ -345,67 +322,52 @@ unsigned char *balance_u8_gray(unsigned char *data, size_t size,
 * @return data_out
 */
 
-void color_u8(unsigned char *data_out, unsigned char *data,
-              unsigned char *gray, unsigned char *gray1, size_t dim)
+void color_u8(unsigned char *data_out, unsigned char *data_in,
+              unsigned char *gray_in, unsigned char *gray_out, size_t size)
 {
-
-    unsigned char *ptr_red, *ptr_green, *ptr_blue;
-    unsigned char *ptr_end, *ptr_gray, *ptr_gray1;
-    unsigned char *ptr_in_red, *ptr_in_green, *ptr_in_blue;
-    float A, B, rr, gg, bb;
-    int ir, ig, ib;
+    unsigned char *r_in, *g_in, *b_in;
+    unsigned char *r_out, *g_out, *b_out;
+    float scale, r, g, b;
+    size_t i;
 
     /* sanity check */
-    if (NULL == data_out || NULL == data || NULL == gray || NULL == gray1) {
+    if (NULL == data_out || NULL == data_in
+        || NULL == gray_out || NULL == gray_in) {
         fprintf(stderr, "a pointer is NULL and should not be so\n");
         abort();
     }
 
-    ptr_gray = gray;
-    ptr_gray1 = gray1;
-    ptr_end = ptr_gray + dim;
-    ptr_red = data_out;
-    ptr_green = data_out + dim;
-    ptr_blue = data_out + 2 * dim;
+    /* setup the direct RGB channel pointers */
+    r_out = data_out;
+    g_out = data_out + size;
+    b_out = data_out + 2 * size;
+    r_in = data_in;
+    g_in = data_in + size;
+    b_in = data_in + 2 * size;
 
-    ptr_in_red = data;
-    ptr_in_green = data + dim;
-    ptr_in_blue = data + 2 * dim;
-    while (ptr_gray < ptr_end) {
-        if (*ptr_gray != 0)
-            A = (float) *ptr_gray1 / (float) *ptr_gray;
-        else
-            A = 0;
-
-        rr = A * (float) (*ptr_in_red);
-        gg = A * (float) (*ptr_in_green);
-        bb = A * (float) (*ptr_in_blue);
-        if (rr > 255. || gg > 255. || bb > 255.) {
-            B = (float) *ptr_in_red;
-            if ((float) *ptr_in_green > B)
-                B = (float) *ptr_in_green;
-            if ((float) *ptr_in_blue > B)
-                B = (float) *ptr_in_blue;
-            A = 255. / B;
-            rr = A * (float) (*ptr_in_red);
-            gg = A * (float) (*ptr_in_green);
-            bb = A * (float) (*ptr_in_blue);
+    for (i = 0; i < size; i++) {
+        scale = (0 == gray_in[i] ? 0.
+                 : (float) gray_out[i] / (float) gray_in[i]);
+        r = scale * (float) r_in[i];
+        g = scale * (float) g_in[i];
+        b = scale * (float) b_in[i];
+        /* if this results in RGB > 255, use a smaller scaling factor */
+        if (r > 255. || g > 255. || b > 255.) {
+            scale = (float) r_in[i];
+            if (scale < (float) g_in[i])
+                scale = (float) g_in[i];
+            if (scale < (float) b_in[i])
+                scale = (float) b_in[i];
+            scale = 255. / scale;
+            r = scale * (float) r_in[i];
+            g = scale * (float) g_in[i];
+            b = scale * (float) b_in[i];
         }
-        ir = (int) (rr + 0.5f);
-        ig = (int) (gg + 0.5f);
-        ib = (int) (bb + 0.5f);
-        *ptr_red = (unsigned char) ir;
-        *ptr_green = (unsigned char) ig;
-        *ptr_blue = (unsigned char) ib;
-
-        ptr_gray++;
-        ptr_gray1++;
-        ptr_red++;
-        ptr_green++;
-        ptr_blue++;
-        ptr_in_red++;
-        ptr_in_green++;
-        ptr_in_blue++;
+        /* save, rounded */
+        r_out[i] = (unsigned char) floor(r + .5);
+        g_out[i] = (unsigned char) floor(g + .5);
+        b_out[i] = (unsigned char) floor(b + .5);
     }
 
+    return;
 }
