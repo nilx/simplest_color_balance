@@ -77,7 +77,7 @@ int main(int argc, char *const *argv)
         return EXIT_FAILURE;
     }
     size = nx * ny;
-    data_tmp = malloc(3 * size * sizeof(unsigned char));
+    data_tmp = (unsigned char *) malloc(3 * size * sizeof(unsigned char));
     memcpy(data_tmp, data, 3 * size * sizeof(unsigned char));
 
     /*

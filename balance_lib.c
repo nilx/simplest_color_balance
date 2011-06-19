@@ -383,10 +383,10 @@ unsigned char *balance_intensity_u8(unsigned char *data, size_t size,
     unsigned char min, max;
     size_t nb_r, nb_g, nb_b;
 
-    data_out = malloc(3 * size * sizeof(unsigned char));
+    data_out = (unsigned char *) malloc(3 * size * sizeof(unsigned char));
     memcpy(data_out, data, 3 * size * sizeof(unsigned char));
-    intensity = malloc(size * sizeof(unsigned char));
-    intensity_out = malloc(size * sizeof(unsigned char));
+    intensity = (unsigned char *) malloc(size * sizeof(unsigned char));
+    intensity_out = (unsigned char *) malloc(size * sizeof(unsigned char));
 
     /* compute intensity values: I=(R+G+B)/3 */
     (void) rgb2i_u8(data, intensity, size);
