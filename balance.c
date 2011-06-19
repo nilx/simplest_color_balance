@@ -19,7 +19,7 @@
  * @file balance.c
  * @brief simplest color balance
  *
- * The input image is normalized to [0-255], saturating a percentage
+ * The input image is normalized to [0-UCHAR_MAX], saturating a percentage
  * of the pixels at the beginning and end of the color space, using a
  * histogram algorithm.
  *
@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #include "io_png.h"
 #include "balance_lib.h"
@@ -43,17 +44,10 @@
 int main(int argc, char *const *argv)
 {
     float s1, s2;               /* saturated percentage */
-    size_t nx, ny;              /* data size */
-    unsigned char *data;        /* input/output data (each color channel processed) */
-    unsigned char *data2;       /* input/output data (only intensity channel processed) */
-    unsigned char *data3;       /*   data (only intensity channel processed) */
-    unsigned char *I, *Inew;    /* intensity values */
-    int channel, ii;
-    unsigned char min, ming, maxg;
-
-    size_t per_r0, per_g0, per_b0;
-    float fI;
-    size_t n;
+    size_t nx, ny, size;        /* data size */
+    size_t nb_min, nb_max;      /* number of saturated pixels */
+    unsigned char *data;        /* input/output data */
+    unsigned char *data_tmp;    /* duplicate data */
 
     /* "-v" option : version info */
     if (2 <= argc && 0 == strcmp("-v", argv[1])) {
@@ -69,7 +63,7 @@ int main(int argc, char *const *argv)
         return EXIT_FAILURE;
     }
 
-    /* flattening percentage */
+    /* saturation percentage */
     s1 = atof(argv[1]);
     s2 = atof(argv[2]);
     if (0. > s1 || 100. <= s1 || 0. > s2 || 100. <= s2) {
@@ -82,148 +76,37 @@ int main(int argc, char *const *argv)
         fprintf(stderr, "the image could not be properly read\n");
         return EXIT_FAILURE;
     }
+    size = nx * ny;
+    data_tmp = malloc(3 * size * sizeof(unsigned char));
+    memcpy(data_tmp, data, 3 * size * sizeof(unsigned char));
 
-    data2 = malloc(3 * nx * ny * sizeof(unsigned char));
-    memcpy(data2, data, 3 * nx * ny * sizeof(unsigned char));
-    data3 = malloc(3 * nx * ny * sizeof(unsigned char));
-    memcpy(data3, data, 3 * nx * ny * sizeof(unsigned char));
+    /*
+     * we saturate nb_min pixels on bottom
+     * and nb_max pixels on the top of the histogram
+     */
+    nb_min = size * (s1 / 100.);
+    nb_max = size * (s2 / 100.);
+
     /*
      * do normalization on RGB channels
-     * we saturate s% pixels, half on both sides of the histogram
      */
-    for (channel = 0; channel < 3; channel++) {
-        (void) balance_u8(data + channel * nx * ny, nx * ny, 0, 255,
-                          nx * ny * (s1 / 100.), nx * ny * (s2 / 100.));
+    (void) balance_u8(data, size, nb_min, nb_max);
+    (void) balance_u8(data + size, size, nb_min, nb_max);
+    (void) balance_u8(data + 2 * size, size, nb_min, nb_max);
 
-    }
+    /* write the PNG image and restore the saved input data */
+    io_png_write_u8(argv[4], data, nx, ny, 3);
+    free(data);
+    data = data_tmp;
 
     /*
-     * do normalization on Intensity channel
-     * we saturate s1% pixels, on left side and s2% pixels on the right side of  the histogram
+     * do normalization on intensity channel
      */
-    /* Compute intensity values: I=(R+G+B)/3 */
-    I = malloc(nx * ny * sizeof(unsigned char));
-    Inew = malloc(nx * ny * sizeof(unsigned char));
-    for (n = 0; n < (int) nx * ny; n++) {
-        fI = ((float) data2[n] + (float) data2[n + nx * ny] +
-              (float) data2[n + 2 * nx * ny]) / 3.;
-        ii = (int) (fI + 0.5f);
-        I[n] = (unsigned char) ii;
-    }
-
-    memcpy(Inew, I, nx * ny * sizeof(unsigned char));
-
-    /*compute the numbers of pixels whose value is zero in each channel */
-    per_r0 = 0;
-    per_g0 = 0;
-    per_b0 = 0;
-    for (n = 0; n < (int) nx * ny; n++) {
-        if (data2[n] == 0)
-            per_r0++;
-        if (data2[n + nx * ny] == 0)
-            per_g0++;
-        if (data2[n + 2 * nx * ny] == 0)
-            per_b0++;
-    }
-
-    /* compute the minimum value of the gray level such that at most s1% of pixels sature to zero in one channel */
-
-    if (per_r0 > nx * ny * (s1 / 100.) || per_g0 > nx * ny * (s1 / 100.)
-        || per_b0 > nx * ny * (s1 / 100.))
-        ming = 0;
-    else {
-        quantiles_u8(I, nx * ny, nx * ny * (s1 / 100.),
-                     nx * ny * (s2 / 100.), &ming, &maxg);
-        maxg = 255;
-        do {
-            (void) balance_u8_gray(Inew, nx * ny, 0, 255, ming, maxg);
-            color_u8(data3, data2, I, Inew, nx * ny);
-            per_r0 = 0;
-            per_g0 = 0;
-            per_b0 = 0;
-            for (n = 0; n < (int) nx * ny; n++) {
-                if (data3[n] == 0)
-                    per_r0++;
-                if (data3[n + nx * ny] == 0)
-                    per_g0++;
-                if (data3[n + 2 * nx * ny] == 0)
-                    per_b0++;
-            }
-
-            if (per_r0 > nx * ny * (s1 / 100.)
-                || per_g0 > nx * ny * (s1 / 100.)
-                || per_b0 > nx * ny * (s1 / 100.))
-                ming--;
-
-            memcpy(Inew, I, nx * ny * sizeof(unsigned char));
-
-        } while ((per_r0 > nx * ny * (s1 / 100.)
-                  || per_g0 > nx * ny * (s1 / 100.)
-                  || per_b0 > nx * ny * (s1 / 100.)));
-
-    }
-
-    /*compute the numbers of pixels whose value is 255 in each channel */
-    per_r0 = 0;
-    per_g0 = 0;
-    per_b0 = 0;
-    for (n = 0; n < (int) nx * ny; n++) {
-        if (data2[n] == 255)
-            per_r0++;
-        if (data2[n + nx * ny] == 255)
-            per_g0++;
-        if (data2[n + 2 * nx * ny] == 255)
-            per_b0++;
-    }
-
-    /* compute the maximum value of the gray level such that at most s2% of pixels sature to 255 in one channel */
-
-    if (per_r0 > nx * ny * (s2 / 100.) || per_g0 > nx * ny * (s2 / 100.)
-        || per_b0 > nx * ny * (s2 / 100.))
-        maxg = 255;
-    else {
-        quantiles_u8(I, nx * ny, nx * ny * (s1 / 100.),
-                     nx * ny * (s2 / 100.), &min, &maxg);
-
-        do {
-            /* normalize the gray intensity with the ming and maxg */
-            (void) balance_u8_gray(Inew, nx * ny, 0, 255, ming, maxg);
-            /* compute each channel for the new gray */
-
-            color_u8(data3, data2, I, Inew, nx * ny);
-            /*compute the numbers of pixels whose value is 255 in each channel */
-            per_r0 = 0;
-            per_g0 = 0;
-            per_b0 = 0;
-            for (n = 0; n < (int) nx * ny; n++) {
-                if (data3[n] == 255)
-                    per_r0++;
-                if (data3[n + nx * ny] == 255)
-                    per_g0++;
-                if (data3[n + 2 * nx * ny] == 255)
-                    per_b0++;
-            }
-
-            if (per_r0 > nx * ny * (s2 / 100.)
-                || per_g0 > nx * ny * (s2 / 100.)
-                || per_b0 > nx * ny * (s2 / 100.))
-                maxg++;
-            memcpy(Inew, I, nx * ny * sizeof(unsigned char));
-        } while ((per_r0 > nx * ny * (s2 / 100.)
-                  || per_g0 > nx * ny * (s2 / 100.)
-                  || per_b0 > nx * ny * (s2 / 100.)));
-
-    }
+    (void) balance_intensity_u8(data, size, nb_min, nb_max);
 
     /* write the PNG image */
-    io_png_write_u8(argv[4], data, nx, ny, 3);
-    io_png_write_u8(argv[5], data3, nx, ny, 3);
-
+    io_png_write_u8(argv[5], data, nx, ny, 3);
     free(data);
-    free(data2);
-    free(data3);
-    free(I);
-    free(Inew);
 
     return EXIT_SUCCESS;
 }

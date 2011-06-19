@@ -30,7 +30,7 @@
 #include <limits.h>
 #include <string.h>
 
-/* encure consistency */
+/* ensure consistency */
 #include "balance_lib.h"
 
 /**
@@ -83,9 +83,9 @@ static void minmax_u8(const unsigned char *data, size_t size,
  * @param nb_min, nb_max number of pixels to flatten
  * @param ptr_min, ptr_max computed min/max output, ignored if NULL
  */
-void quantiles_u8(unsigned char *data, size_t size,
-                  size_t nb_min, size_t nb_max,
-                  unsigned char *ptr_min, unsigned char *ptr_max)
+static void quantiles_u8(unsigned char *data, size_t size,
+                         size_t nb_min, size_t nb_max,
+                         unsigned char *ptr_min, unsigned char *ptr_max)
 {
     /*
      * the histogran must hold all possible "unsigned char" values,
@@ -122,7 +122,7 @@ void quantiles_u8(unsigned char *data, size_t size,
 
     if (NULL != ptr_min) {
         /* simple forward traversal of the cumulative histogram */
-        /* search the first value > flat_nb_min */
+        /* search the first value > nb_min */
         i = 0;
         while (i < h_size && histo[i] <= nb_min)
             i++;
@@ -142,7 +142,7 @@ void quantiles_u8(unsigned char *data, size_t size,
         /*
          * if we are not at the end of the histogram,
          * get to the next cell,
-         * ie the last (backward) value > size - flat_nb_max
+         * ie the last (backward) value > size - nb_max
          */
         if (i < h_size - 1)
             i++;
@@ -153,28 +153,21 @@ void quantiles_u8(unsigned char *data, size_t size,
 }
 
 /**
- * @brief normalize an unsigned char array
+ * @brief rescale an unsigned char array
  *
- * This function operates in-place. It computes the minimum and
- * maximum values of the data, and rescales the data to the target
- * minimum and maximum, with optionnally flattening some extremal
- * pixels.
+ * This function operates in-place. It rescales the data by a bounded
+ * affine function such that min becomes 0 and max becomes UCHAR_MAX.
  *
  * @param data input/output array
  * @param size array size
- * @param target_min, target_max target min/max values
- * @param flat_nb_min, flat_nb_max number extremal pixels flattened
+ * @param min the minimum of the input array
+ * @param nb_max number extremal pixels flattened
  *
  * @return data
- *
- * @todo hardcode target_*
  */
-unsigned char *balance_u8(unsigned char *data, size_t size,
-                          unsigned char target_min,
-                          unsigned char target_max,
-                          size_t flat_nb_min, size_t flat_nb_max)
+static unsigned char *rescale_u8(unsigned char *data, size_t size,
+                                 unsigned char min, unsigned char max)
 {
-    unsigned char min, max;
     size_t i;
 
     /* sanity checks */
@@ -182,148 +175,99 @@ unsigned char *balance_u8(unsigned char *data, size_t size,
         fprintf(stderr, "a pointer is NULL and should not be so\n");
         abort();
     }
-    if (flat_nb_min + flat_nb_max >= size) {
-        flat_nb_min = (size - 1) / 2;
-        flat_nb_max = (size - 1) / 2;
+
+    /* printf("min=%d  max=%d\n", min, max); */
+    if (max <= min) {
+        unsigned char mid = UCHAR_MAX / 2;
+        for (i = 0; i < size; i++)
+            data[i] = mid;
+    }
+    else {
+        float scale;
+        unsigned char norm[UCHAR_MAX + 1];
+
+        scale = (float) UCHAR_MAX / (float) (max - min);
+        for (i = 0; i < min; i++)
+            norm[i] = 0;
+        for (i = min; i < max; i++)
+            norm[i] = (unsigned char) ((i - min) * scale);
+        for (i = max; i < UCHAR_MAX + 1; i++)
+            norm[i] = UCHAR_MAX;
+        /* use the normalization table to transform the data */
+        for (i = 0; i < size; i++)
+            data[i] = norm[(size_t) data[i]];
+    }
+    return data;
+}
+
+/**
+ * @brief normalize an unsigned char array
+ *
+ * This function operates in-place. It computes the minimum and
+ * maximum values of the data, and rescales the data to
+ * [0-UCHAR_MAX], with optionnally flattening some extremal pixels.
+ *
+ * @param data input/output array
+ * @param size array size
+ * @param nb_min, nb_max number extremal pixels flattened
+ *
+ * @return data
+ */
+unsigned char *balance_u8(unsigned char *data, size_t size,
+                          size_t nb_min, size_t nb_max)
+{
+    unsigned char min, max;
+
+    /* sanity checks */
+    if (NULL == data) {
+        fprintf(stderr, "a pointer is NULL and should not be so\n");
+        abort();
+    }
+    if (nb_min + nb_max >= size) {
+        nb_min = (size - 1) / 2;
+        nb_max = (size - 1) / 2;
         fprintf(stderr, "the number of pixels to flatten is too large\n");
         fprintf(stderr, "using (size - 1) / 2\n");
     }
 
-    /* target_max == target_min : shortcut */
-    if (target_max == target_min) {
-        for (i = 0; i < size; i++)
-            data[i] = target_min;
-        return data;
-    }
-
-    if (0 != flat_nb_min || 0 != flat_nb_max)
+    if (0 != nb_min || 0 != nb_max)
         /* get the min/max from the histogram */
-        quantiles_u8(data, size, flat_nb_min, flat_nb_max, &min, &max);
+        quantiles_u8(data, size, nb_min, nb_max, &min, &max);
     else
         /* get the min/max from the data */
         minmax_u8(data, size, &min, &max);
 
     /* rescale */
-    /* max <= min : constant output */
-    if (max <= min) {
-        unsigned char target_mid;
-        target_mid = (target_max + target_min) / 2;
-        for (i = 0; i < size; i++)
-            data[i] = target_mid;
-    }
-    else {
-        /*
-         * build a bounded linear normalization table
-         * such that norm(min) = target_min
-         *           norm(max) = target_max
-         * norm(x) = (x - min) * (t_max - t_min) / (max - min) + t_min
-         */
-        float scale;
-        unsigned char norm[UCHAR_MAX + 1];
+    (void) rescale_u8(data, size, min, max);
 
-        scale = (float) (target_max - target_min) / (float) (max - min);
-        for (i = 0; i < min; i++)
-            norm[i] = target_min;
-        for (i = min; i < max; i++)
-            norm[i] = (unsigned char) ((i - min) * scale + target_min);
-        for (i = max; i < UCHAR_MAX + 1; i++)
-            norm[i] = target_max;
-        /* use the normalization table to transform the data */
-        for (i = 0; i < size; i++)
-            data[i] = norm[(size_t) data[i]];
-    }
     return data;
 }
 
 /**
- * @brief normalize an unsigned char array
+ * @brief computes the R G B components of the output image from its
+ * gray level
  *
- * This function operates in-place. It rescales the data by a bounded
- * affine function such that min becomes target_min and max becomes
- * target_max.
+ * Given a color image C=(R, G, B) and its intensity I=(R+G+B)/3 and a
+ * modified intensity I', this function computes an output color image
+ * C'=(R', G', B') where each channel is proportional to the input
+ * channel and whose intensity is I': R'=I'/I R, G'=I'/I G, B'=I'/I B
  *
- * @param data input/output array
- * @param size array size
- * @param target_min, target_max target min/max values
- * @param min the minimum of the input array
- * @param flat_nb_max number extremal pixels flattened
+ * If the factor I'/I is too large the colors may be saturated to the
+ * faces of the RGB cube.
  *
- * @return data
+ * @todo fix algo bug, the output image intensity is not I'
  *
- * @todo hardcode target_*
+ * @param data_out output color image
+ * @param data_in input color image
+ * @param gray gray level of the input color image
+ * @param gray1 modified gray image
+ * @param dim size of the image
+ *
+ * @return data_out
  */
-
-unsigned char *balance_u8_gray(unsigned char *data, size_t size,
-                               unsigned char target_min,
-                               unsigned char target_max,
-                               unsigned char min, unsigned char max)
-{
-    size_t i;
-
-    /* sanity checks */
-    if (NULL == data) {
-        fprintf(stderr, "a pointer is NULL and should not be so\n");
-        abort();
-    }
-
-    /* target_max == target_min : shortcut */
-    if (target_max == target_min) {
-        for (i = 0; i < size; i++)
-            data[i] = target_min;
-        return data;
-    }
-
-    /* printf("min=%d  max=%d\n", min, max); */
-    if (max <= min) {
-        unsigned char target_mid;
-        target_mid = (target_max + target_min) / 2;
-        for (i = 0; i < size; i++)
-            data[i] = target_mid;
-    }
-    else {
-        float scale;
-        unsigned char norm[UCHAR_MAX + 1];
-
-        scale = (float) (target_max - target_min) / (float) (max - min);
-        for (i = 0; i < min; i++)
-            norm[i] = target_min;
-        for (i = min; i < max; i++)
-            norm[i] = (unsigned char) ((i - min) * scale + target_min);
-        for (i = max; i < UCHAR_MAX + 1; i++)
-            norm[i] = target_max;
-        /* use the normalization table to transform the data */
-        for (i = 0; i < size; i++)
-            data[i] = norm[(size_t) data[i]];
-    }
-
-    return data;
-}
-
-/**
-* @brief computes the R G B components of the output image from its
-* gray level
-*
-* Given a color image C=(R, G, B) and its intensity I=(R+G+B)/3 and a
-* modified intensity I', this function computes an output color image
-* C'=(R', G', B') where each channel is proportional to the input
-* channel and whose intensity is I': R'=I'/I R, G'=I'/I G, B'=I'/I B
-*
-* If the factor I'/I is too large the colors may be saturated to the
-* faces of the RGB cube.
-*
-* @todo fix algo bug, the output image intensity is not I'
-*
-* @param data_out output color image
-* @param data_in input color image
-* @param gray gray level of the input color image
-* @param gray1 modified gray image
-* @param dim size of the image
-*
-* @return data_out
-*/
-
-void color_u8(unsigned char *data_out, unsigned char *data_in,
-              unsigned char *gray_in, unsigned char *gray_out, size_t size)
+static void color_u8(unsigned char *data_out, unsigned char *data_in,
+                     unsigned char *gray_in, unsigned char *gray_out,
+                     size_t size)
 {
     unsigned char *r_in, *g_in, *b_in;
     unsigned char *r_out, *g_out, *b_out;
@@ -351,14 +295,15 @@ void color_u8(unsigned char *data_out, unsigned char *data_in,
         r = scale * (float) r_in[i];
         g = scale * (float) g_in[i];
         b = scale * (float) b_in[i];
-        /* if this results in RGB > 255, use a smaller scaling factor */
-        if (r > 255. || g > 255. || b > 255.) {
+        /* if this results in RGB > UCHAR_MAX, use a smaller scaling factor */
+        if (r > (float) UCHAR_MAX
+            || g > (float) UCHAR_MAX || b > (float) UCHAR_MAX) {
             scale = (float) r_in[i];
             if (scale < (float) g_in[i])
                 scale = (float) g_in[i];
             if (scale < (float) b_in[i])
                 scale = (float) b_in[i];
-            scale = 255. / scale;
+            scale = UCHAR_MAX / scale;
             r = scale * (float) r_in[i];
             g = scale * (float) g_in[i];
             b = scale * (float) b_in[i];
@@ -368,6 +313,161 @@ void color_u8(unsigned char *data_out, unsigned char *data_in,
         g_out[i] = (unsigned char) floor(g + .5);
         b_out[i] = (unsigned char) floor(b + .5);
     }
-
     return;
+}
+
+/**
+ * @brief convert a RGB array to its intensity
+ *
+ * @param data_rgb input array
+ * @param data_i output array
+ * @param size array size
+ *
+ * @return data_i
+ */
+static unsigned char *rgb2i_u8(const unsigned char *data_rgb,
+                               unsigned char *data_i, size_t size)
+{
+    const unsigned char *data_r, *data_g, *data_b;
+    size_t i;
+
+    data_r = data_rgb;
+    data_g = data_rgb + size;
+    data_b = data_rgb + 2 * size;
+    for (i = 0; i < size; i++)
+        data_i[i] = (unsigned char)
+            floor(((float) data_r[i]
+                   + (float) data_g[i]
+                   + (float) data_b[i]) / 3. + .5);
+    return data_i;
+}
+
+/**
+ * @brief count occurences in an array
+ *
+ * @param data input array
+ * @param size array size
+ * @param value counted occurence
+ *
+ * @return number of times value appears in data
+ */
+static size_t count_u8(const unsigned char *data,
+                       size_t size, unsigned char value)
+{
+    size_t i, nb;
+
+    nb = 0;
+    for (i = 0; i < size; i++)
+        nb += (value == data[i]);
+    return nb;
+}
+
+/**
+ * @brief normalize a RGB unsigned char array via its intensity
+ *
+ * This function operates in-place. It computes the minimum and
+ * maximum values of the data, and rescales the data to
+ * [0-UCHAR_MAX], with optionnally flattening some extremal pixels.
+ *
+ * @param data input/output array
+ * @param size array size
+ * @param nb_min, nb_max number extremal pixels flattened
+ *
+ * @return data
+ */
+unsigned char *balance_intensity_u8(unsigned char *data, size_t size,
+                                    size_t nb_min, size_t nb_max)
+{
+    unsigned char *data_out;    /* data (intensity process) */
+    unsigned char *intensity, *intensity_out;   /* intensity values */
+    unsigned char min, max;
+    size_t nb_r, nb_g, nb_b;
+
+    data_out = malloc(3 * size * sizeof(unsigned char));
+    memcpy(data_out, data, 3 * size * sizeof(unsigned char));
+    intensity = malloc(size * sizeof(unsigned char));
+    intensity_out = malloc(size * sizeof(unsigned char));
+
+    /* compute intensity values: I=(R+G+B)/3 */
+    (void) rgb2i_u8(data, intensity, size);
+    memcpy(intensity_out, intensity, size * sizeof(unsigned char));
+
+    /*
+     * compute the numbers of pixels
+     * whose value is zero in each channel
+     */
+    nb_r = count_u8(data, size, 0);
+    nb_g = count_u8(data + size, size, 0);
+    nb_b = count_u8(data + 2 * size, size, 0);
+
+    /*
+     * compute the minimum value of the intensity
+     * such that at most nb_min of pixels sature to zero in one channel
+     */
+    if (nb_r > nb_min || nb_g > nb_min || nb_b > nb_min)
+        min = 0;
+    else {
+        quantiles_u8(intensity, size, nb_min, nb_max, &min, NULL);
+        max = UCHAR_MAX;
+        do {
+            /* normalize the gray intensity with the min and max */
+            (void) rescale_u8(intensity_out, size, min, max);
+            /* compute each channel for the new gray */
+            color_u8(data_out, data, intensity, intensity_out, size);
+            /*
+             * recompute the numbers of pixels
+             * whose value is 0 in each channel
+             */
+            nb_r = count_u8(data_out, size, 0);
+            nb_g = count_u8(data_out + size, size, 0);
+            nb_b = count_u8(data_out + 2 * size, size, 0);
+
+            if (nb_r > nb_min || nb_g > nb_min || nb_b > nb_min)
+                min--;
+            memcpy(intensity_out, intensity, size * sizeof(unsigned char));
+        } while (nb_r > nb_min || nb_g > nb_min || nb_b > nb_min);
+    }
+
+    /*
+     * compute the numbers of pixels
+     * whose value is UCHAR_MAX in each channel
+     */
+    nb_r = count_u8(data, size, UCHAR_MAX);
+    nb_g = count_u8(data + size, size, UCHAR_MAX);
+    nb_b = count_u8(data + 2 * size, size, UCHAR_MAX);
+
+    /*
+     * compute the maximum value of the intensity
+     * such that at most nb_max pixels sature to UCHAR_MAX in one channel
+     */
+    if (nb_r > nb_max || nb_g > nb_max || nb_b > nb_max)
+        max = UCHAR_MAX;
+    else {
+        quantiles_u8(intensity, size, nb_min, nb_max, NULL, &max);
+        do {
+            /* normalize the gray intensity with the min and max */
+            (void) rescale_u8(intensity_out, size, min, max);
+            /* compute each channel for the new gray */
+            color_u8(data_out, data, intensity, intensity_out, size);
+            /*
+             * recompute the numbers of pixels
+             * whose value is UCHAR_MAX in each channel
+             */
+            nb_r = count_u8(data_out, size, UCHAR_MAX);
+            nb_g = count_u8(data_out + size, size, UCHAR_MAX);
+            nb_b = count_u8(data_out + 2 * size, size, UCHAR_MAX);
+
+            if (nb_r > nb_max || nb_g > nb_max || nb_b > nb_max)
+                max++;
+            memcpy(intensity_out, intensity, size * sizeof(unsigned char));
+        } while (nb_r > nb_max || nb_g > nb_max || nb_b > nb_max);
+    }
+
+    free(intensity);
+    free(intensity_out);
+
+    memcpy(data, data_out, 3 * size * sizeof(unsigned char));
+    free(data_out);
+
+    return data;
 }
