@@ -13,12 +13,14 @@ _log_init
 echo "* check memory leaks"
 _log make distclean
 _log make
-_log _test_memcheck ./balance 0 0 data/colors.png \
-    /tmp/out_rgb.png /tmp/out_i.png
-_log _test_memcheck ./balance 10 20 data/colors.png \
-    /tmp/out_rgb.png /tmp/out_i.png
-_log _test_memcheck ./balance 50 50 data/colors.png \
-    /tmp/out_rgb.png /tmp/out_i.png
+TEMPFILE=$(tempfile)
+_log _test_memcheck ./balance_rgb 0 0 data/colors.png $TEMPFILE
+_log _test_memcheck ./balance_rgb 10 20 data/colors.png $TEMPFILE
+_log _test_memcheck ./balance_rgb 50 50 data/colors.png $TEMPFILE
+_log _test_memcheck ./balance_rgbf 0 0 data/colors.png $TEMPFILE
+_log _test_memcheck ./balance_rgbf 10 20 data/colors.png $TEMPFILE
+_log _test_memcheck ./balance_rgbf 50 50 data/colors.png $TEMPFILE
+rm -f $TEMPFILE
 
 
 _log make distclean

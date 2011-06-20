@@ -16,12 +16,12 @@
  */
 
 /**
- * @file balance.c
- * @brief simplest color balance
+ * @file balance_rgbf.c
+ * @brief simplest color balance on RGB channels using float values
  *
- * The input image is normalized to [0-UCHAR_MAX], saturating a percentage
- * of the pixels at the beginning and end of the color space, using a
- * histogram algorithm.
+ * The input image is normalized to [0-UCHAR_MAX] on each RGB channel,
+ * saturating a percentage of the pixels at the beginning and end of
+ * the color space on each channel.
  *
  * @author Nicolas Limare <nicolas.limare@cmla.ens-cachan.fr>
  * @author Jose-Luis Lisani <joseluis.lisani@uib.es>
@@ -38,16 +38,13 @@
 
 /**
  * @brief main function call
- *
- * The saturation is processed half at both ends of the histogram.
  */
 int main(int argc, char *const *argv)
 {
-    float s1, s2;               /* saturated percentage */
+    float smin, smax;           /* saturated percentage */
     size_t nx, ny, size;        /* data size */
     size_t nb_min, nb_max;      /* number of saturated pixels */
-    unsigned char *data;        /* input/output data */
-    unsigned char *data_tmp;    /* duplicate data */
+    float *rgb;                 /* input/output data */
 
     /* "-v" option : version info */
     if (2 <= argc && 0 == strcmp("-v", argv[1])) {
@@ -55,58 +52,45 @@ int main(int argc, char *const *argv)
         return EXIT_SUCCESS;
     }
     /* wrong number of parameters : simple help info */
-    if (6 != argc) {
-        fprintf(stderr, "usage : %s S1 S2 in.png out.png out2.png\n",
-                argv[0]);
+    if (5 != argc) {
+        fprintf(stderr, "usage : %s Smin Smax in.png out.png\n", argv[0]);
         fprintf(stderr,
-                "        S1 and S2 saturated pixels percentage [0...100[\n");
+                "        SMIN and SMAX saturated pixels perc. [0...100[\n");
         return EXIT_FAILURE;
     }
 
     /* saturation percentage */
-    s1 = atof(argv[1]);
-    s2 = atof(argv[2]);
-    if (0. > s1 || 100. <= s1 || 0. > s2 || 100. <= s2) {
+    smin = atof(argv[1]);
+    smax = atof(argv[2]);
+    if (0. > smin || 100. <= smin || 0. > smax || 100. <= smax) {
         fprintf(stderr, "the saturation percentages must be in [0..100[\n");
         return EXIT_FAILURE;
     }
 
     /* read the PNG image */
-    if (NULL == (data = io_png_read_u8_rgb(argv[3], &nx, &ny))) {
+    if (NULL == (rgb = io_png_read_f32_rgb(argv[3], &nx, &ny))) {
         fprintf(stderr, "the image could not be properly read\n");
         return EXIT_FAILURE;
     }
     size = nx * ny;
-    data_tmp = (unsigned char *) malloc(3 * size * sizeof(unsigned char));
-    memcpy(data_tmp, data, 3 * size * sizeof(unsigned char));
 
     /*
      * we saturate nb_min pixels on bottom
      * and nb_max pixels on the top of the histogram
      */
-    nb_min = size * (s1 / 100.);
-    nb_max = size * (s2 / 100.);
+    nb_min = size * (smin / 100.);
+    nb_max = size * (smax / 100.);
 
     /*
      * do normalization on RGB channels
      */
-    (void) balance_u8(data, size, nb_min, nb_max);
-    (void) balance_u8(data + size, size, nb_min, nb_max);
-    (void) balance_u8(data + 2 * size, size, nb_min, nb_max);
+    (void) balance_f32(rgb, size, nb_min, nb_max);
+    (void) balance_f32(rgb + size, size, nb_min, nb_max);
+    (void) balance_f32(rgb + 2 * size, size, nb_min, nb_max);
 
-    /* write the PNG image and restore the saved input data */
-    io_png_write_u8(argv[4], data, nx, ny, 3);
-    free(data);
-    data = data_tmp;
-
-    /*
-     * do normalization on intensity channel
-     */
-    (void) balance_intensity_u8(data, size, nb_min, nb_max);
-
-    /* write the PNG image */
-    io_png_write_u8(argv[5], data, nx, ny, 3);
-    free(data);
+    /* write the PNG image and free the memory space */
+    io_png_write_f32(argv[4], rgb, nx, ny, 3);
+    free(rgb);
 
     return EXIT_SUCCESS;
 }

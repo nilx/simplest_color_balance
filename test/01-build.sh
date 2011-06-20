@@ -4,14 +4,14 @@
 
 # simple code execution
 _test_run() {
-    TEMPFILE_RGB=$(tempfile)
-    TEMPFILE_I=$(tempfile)
-    ./balance 10 20 data/colors.png $TEMPFILE_RGB $TEMPFILE_I
-    test "64b5d6e2fa9440b04d768b522a78d4bd  $TEMPFILE_RGB" \
-	= "$(md5sum $TEMPFILE_RGB)"
-    test "50eb5ea1c6c768e569d4d4285f67dfc2  $TEMPFILE_I" \
-	= "$(md5sum $TEMPFILE_I)"
-    rm -f $TEMPFILE_RGB $TEMPFILE_I
+    TEMPFILE=$(tempfile)
+    ./balance_rgb 10 20 data/colors.png $TEMPFILE
+    test "64b5d6e2fa9440b04d768b522a78d4bd  $TEMPFILE" \
+	= "$(md5sum $TEMPFILE)"
+    ./balance_rgbf 10 20 data/colors.png $TEMPFILE
+    test "64b5d6e2fa9440b04d768b522a78d4bd  $TEMPFILE" \
+	= "$(md5sum $TEMPFILE)"
+    rm -f $TEMPFILE
 }
 
 ################################################
@@ -27,11 +27,19 @@ _log make clean
 _log make
 
 echo "* compiler support"
-for CC in cc c++ gcc g++ tcc clang icc pathcc; do
+for CC in cc c++ gcc g++ tcc clang pathcc; do
     if which $CC; then
 	echo "* $CC compiler"
 	_log make distclean
 	_log make CC=$CC CFLAGS=
+	_log _test_run
+    fi
+done
+for CC in icc; do
+    if which $CC; then
+	echo "* $CC compiler"
+	_log make distclean
+	_log make CC=$CC CFLAGS=-prec-div
 	_log _test_run
     fi
 done
