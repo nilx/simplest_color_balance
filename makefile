@@ -19,7 +19,7 @@ COPT	= -O3 -funroll-loops -fomit-frame-pointer -ffast-math
 # complete C compiler options
 CFLAGS	= -ansi -pedantic -Wall -Wextra -Werror -pipe $(COPT)
 # linker options
-LDFLAGS	+= -lpng -lfftw3f
+LDFLAGS	+= -lpng
 
 # default target: the binary executable programs
 default: $(BIN)
