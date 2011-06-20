@@ -7,9 +7,9 @@ _test_run() {
     TEMPFILE_RGB=$(tempfile)
     TEMPFILE_I=$(tempfile)
     ./balance 10 20 data/colors.png $TEMPFILE_RGB $TEMPFILE_I
-    test "8ec9ab3d216b50bb018b5a4a80e800fb  $TEMPFILE_RGB" \
+    test "64b5d6e2fa9440b04d768b522a78d4bd  $TEMPFILE_RGB" \
 	= "$(md5sum $TEMPFILE_RGB)"
-    test "c460eed5d7001d17218f6b3496b43923  $TEMPFILE_I" \
+    test "50eb5ea1c6c768e569d4d4285f67dfc2  $TEMPFILE_I" \
 	= "$(md5sum $TEMPFILE_I)"
     rm -f $TEMPFILE_RGB $TEMPFILE_I
 }

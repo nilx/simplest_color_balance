@@ -127,8 +127,6 @@ static void quantiles_u8(unsigned char *data, size_t size,
         while (i < h_size && histo[i] <= nb_min)
             i++;
         /* the corresponding histogram value is the current cell indice */
-        if (i > 0)
-            i--;
         *ptr_min = (unsigned char) i;
     }
 
@@ -183,16 +181,20 @@ static unsigned char *rescale_u8(unsigned char *data, size_t size,
             data[i] = mid;
     }
     else {
-        float scale;
+        /* build a normalization table */
         unsigned char norm[UCHAR_MAX + 1];
-
-        scale = (float) UCHAR_MAX / (float) (max - min);
         for (i = 0; i < min; i++)
             norm[i] = 0;
-        for (i = min; i < max; i++)
-            norm[i] = (unsigned char) ((i - min) * scale);
         for (i = max; i < UCHAR_MAX + 1; i++)
             norm[i] = UCHAR_MAX;
+        for (i = min; i < max; i++)
+            /*
+             * we can't store and reuse UCHAR_MAX / (max - min) because
+             *     105 * 255 / 126.            -> 212.5, rounded to 213
+             *     105 * (double) (255 / 126.) -> 212.4999, rounded to 212
+             */
+            norm[i] = (unsigned char) floor((i - min) * UCHAR_MAX
+                                            / (float) (max - min) + .5);
         /* use the normalization table to transform the data */
         for (i = 0; i < size; i++)
             data[i] = norm[(size_t) data[i]];
