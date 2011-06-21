@@ -8,8 +8,8 @@ _test_run() {
     ./balance_rgb 10 20 data/colors.png $TEMPFILE
     test "64b5d6e2fa9440b04d768b522a78d4bd  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
-    ./balance_rgbf 10 20 data/colors.png $TEMPFILE
-    test "64b5d6e2fa9440b04d768b522a78d4bd  $TEMPFILE" \
+    ./balance_hsl 10 20 data/colors.png $TEMPFILE
+    test "d1bad04a9942848383da68390f25ea56  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     rm -f $TEMPFILE
 }

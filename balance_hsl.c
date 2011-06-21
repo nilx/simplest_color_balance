@@ -16,12 +16,12 @@
  */
 
 /**
- * @file balance_rgbf.c
- * @brief simplest color balance on RGB channels using float values
+ * @file balance_hsl.c
+ * @brief simplest color balance in th HSL color space
  *
- * The input image is normalized to [0-UCHAR_MAX] on each RGB channel,
- * saturating a percentage of the pixels at the beginning and end of
- * the color space on each channel.
+ * The input image is normalized by affine transformation on the L
+ * axis, saturating a percentage of the pixels at the beginning and
+ * end of the axis.
  *
  * @author Nicolas Limare <nicolas.limare@cmla.ens-cachan.fr>
  * @author Jose-Luis Lisani <joseluis.lisani@uib.es>
@@ -35,6 +35,7 @@
 
 #include "io_png.h"
 #include "balance_lib.h"
+#include "colorspace_lib.h"
 
 /**
  * @brief main function call
@@ -44,7 +45,7 @@ int main(int argc, char *const *argv)
     float smin, smax;           /* saturated percentage */
     size_t nx, ny, size;        /* data size */
     size_t nb_min, nb_max;      /* number of saturated pixels */
-    float *rgb;                 /* input/output data */
+    float *rgb, *hsl;           /* input/output data */
 
     /* "-v" option : version info */
     if (2 <= argc && 0 == strcmp("-v", argv[1])) {
@@ -53,9 +54,9 @@ int main(int argc, char *const *argv)
     }
     /* wrong number of parameters : simple help info */
     if (5 != argc) {
-        fprintf(stderr, "usage : %s Smin Smax in.png out.png\n", argv[0]);
-        fprintf(stderr,
-                "        SMIN and SMAX saturated pixels perc. [0...100[\n");
+        fprintf(stderr, "usage : %s Sb Sw in.png out.png\n", argv[0]);
+        fprintf(stderr, "        Sb and Sw are percentage of pixels\n");
+        fprintf(stderr, "        saturated to black and white, in [0-100[\n");
         return EXIT_FAILURE;
     }
 
@@ -63,7 +64,7 @@ int main(int argc, char *const *argv)
     smin = atof(argv[1]);
     smax = atof(argv[2]);
     if (0. > smin || 100. <= smin || 0. > smax || 100. <= smax) {
-        fprintf(stderr, "the saturation percentages must be in [0..100[\n");
+        fprintf(stderr, "the saturation percentages must be in [0-100[\n");
         return EXIT_FAILURE;
     }
 
@@ -82,11 +83,16 @@ int main(int argc, char *const *argv)
     nb_max = size * (smax / 100.);
 
     /*
-     * do normalization on RGB channels
+     * do normalization on the L axis
      */
-    (void) balance_f32(rgb, size, nb_min, nb_max);
-    (void) balance_f32(rgb + size, size, nb_min, nb_max);
-    (void) balance_f32(rgb + 2 * size, size, nb_min, nb_max);
+    /* convert to HSL */
+    hsl = (float *) malloc(3 * size * sizeof(float));
+    rgb2hsl(rgb, hsl, size);
+    /* normalize the L channel */
+    (void) balance_f32(hsl + 2 * size, size, nb_min, nb_max);
+    /* convert back to HSL */
+    hsl2rgb(hsl, rgb, size);
+    free(hsl);
 
     /* write the PNG image and free the memory space */
     io_png_write_f32(argv[4], rgb, nx, ny, 3);

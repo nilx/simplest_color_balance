@@ -183,6 +183,10 @@ static int cmp_f32(const void *a, const void *b)
  * @param size data array size
  * @param nb_min, nb_max number of pixels to flatten
  * @param ptr_min, ptr_max computed min/max output, ignored if NULL
+ *
+ * @todo instead of sorting the whole array (expensive), select
+ * pertinent values with a 128 bins histogram then sort the bins
+ * around the good bins
  */
 static void quantiles_f32(const float *data, size_t size,
                           size_t nb_min, size_t nb_max,
@@ -254,7 +258,7 @@ static unsigned char *rescale_u8(unsigned char *data, size_t size,
  * @brief rescale a float array
  *
  * This function operates in-place. It rescales the data by a bounded
- * affine function such that min becomes 0 and max becomes UCHAR_MAX.
+ * affine function such that min becomes 0 and max becomes 1.
  *
  * @param data input/output array
  * @param size array size
@@ -269,7 +273,7 @@ static float *rescale_f32(float *data, size_t size, float min, float max)
     size_t i;
 
     if (max <= min) {
-        float mid = UCHAR_MAX / 2.;
+        float mid = .5;
         for (i = 0; i < size; i++)
             data[i] = mid;
     }
@@ -283,15 +287,14 @@ static float *rescale_f32(float *data, size_t size, float min, float max)
             if (min > data[i])
                 data[i] = 0;
             else if (max < data[i])
-                data[i] = (float) UCHAR_MAX;
+                data[i] = 1.;
             else
                 /*
                  * with Intel C compiler (icc 12.0.4), use the
                  * '-prec-div' option to avoid precision loss here,
                  * resulting in 53. * 255. / 106. = 127.4999
                  */
-                data[i] = floor((data[i] - min) * UCHAR_MAX
-                                / (float) (max - min) + .5);
+                data[i] = (data[i] - min) / (float) (max - min);
         }
     }
 

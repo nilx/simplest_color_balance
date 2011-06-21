@@ -6,13 +6,13 @@
 # offered as-is, without any warranty.
 
 # source code, C language
-CSRC	= io_png.c balance_lib.c colorspace_lib.c balance_rgb.c balance_rgbf.c
+CSRC	= io_png.c balance_lib.c colorspace_lib.c balance_rgb.c balance_hsl.c
 # source code, all languages (only C here)
 SRC	= $(CSRC)
 # object files (partial compilation)
 OBJ	= $(CSRC:.c=.o)
 # binary executable programs
-BIN	= balance_rgb balance_rgbf
+BIN	= balance_rgb balance_hsl
 
 # standard C compiler optimization options
 COPT	= -O3 -funroll-loops -fomit-frame-pointer -ffast-math
@@ -31,7 +31,7 @@ default: $(BIN)
 # final link
 balance_rgb	: io_png.o balance_lib.o balance_rgb.o
 	$(CC) $^ $(LDFLAGS) -o $@
-balance_rgbf	: io_png.o balance_lib.o balance_rgbf.o
+balance_hsl	: io_png.o balance_lib.o colorspace_lib.o balance_hsl.o
 	$(CC) $^ $(LDFLAGS) -o $@
 
 # cleanup

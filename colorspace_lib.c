@@ -20,6 +20,7 @@
  *
  * @todo convert in-loop, no function call
  * @todo probably lots of room for speed improvements
+ * @todo only compute L from RGB, then compute RGB from RGB and L
  */
 
 #include <stdlib.h>
@@ -53,7 +54,7 @@
  * This routine transforms from sRGB to the double hexcone HSL color
  * space. The sRGB values are assumed to be between 0 and 1.  The
  * outputs are
- *   H = hexagonal hue angle                (0 <= H < 360),
+ *   H = hexagonal hue angle                (0 <= H < 6),
  *   S = { C/(2L)     if L <= 1/2           (0 <= S <= 1),
  *       { C/(2 - 2L) if L >  1/2
  *   L = (max(R',G',B') + min(R',G',B'))/2  (0 <= L <= 1),
@@ -67,9 +68,11 @@
  */
 static void _rgb2hsl(float r, float g, float b, float *h, float *s, float *l)
 {
-    float max = MAX3(r, g, b);
-    float min = MIN3(r, g, b);
-    float c = max - min;
+    float max, min, c;
+
+    max = MAX3(r, g, b);
+    min = MIN3(r, g, b);
+    c = max - min;
 
     *l = (max + min) / 2;
     if (c > 0) {
@@ -82,11 +85,13 @@ static void _rgb2hsl(float r, float g, float b, float *h, float *s, float *l)
             *h = 2 + (b - r) / c;
         else
             *h = 4 + (r - g) / c;
-        *h *= 60;
-        *s = (*l <= 0.5) ? (c / (2 * (*l))) : (c / (2 - 2 * (*l)));
+        *s = (*l <= 0.5 ? c / (2 * (*l))
+              : c / (2 - 2 * (*l)));
     }
-    else
-        *h = *s = 0;
+    else {
+        *h = 0;
+        *s = 0;
+    }
 }
 
 /**
@@ -94,7 +99,7 @@ static void _rgb2hsl(float r, float g, float b, float *h, float *s, float *l)
  *
  * This routine uses _rgb2hsl() on a float array with sRGB values
  * in [0-UCHAR_MAX] to produce the equivalent float array
- * with HSL values in [0-360[x[0-1]x[0-1].
+ * with HSL values in [0-6[x[0-1]x[0-1].
  *
  * @param rgb input array
  * @param hsl output array
@@ -115,14 +120,14 @@ void rgb2hsl(const float *rgb, float *hsl, size_t size)
 
     for (i = 0; i < size; i++)
         _rgb2hsl(r[i] / UCHAR_MAX, g[i] / UCHAR_MAX, b[i] / UCHAR_MAX,
-                 &h[i], &s[i], &l[i]);
+                 h + i, s + i, l + i);
 }
 
 /**
  * @brief Convert a Hue-Saturation-Lightness (HSL) color to sRGB.
  *
  * The input values are assumed to be scaled as
- *    0 <= H < 360,
+ *    0 <= H < 6,
  *    0 <= S <= 1,
  *    0 <= L <= 1.
  * The output sRGB values are scaled between 0 and 1.  This is the
@@ -135,12 +140,10 @@ void rgb2hsl(const float *rgb, float *hsl, size_t size)
  */
 static void _hsl2rgb(float h, float s, float l, float *r, float *g, float *b)
 {
-    float c = (l <= 0.5) ? (2 * l * s) : ((2 - 2 * l) * s);
-    float min = l - 0.5 * c;
-    float x;
+    float c, min, x;
 
-    h -= 360 * floor(h / 360);
-    h /= 60;
+    c = (l <= 0.5 ? 2 * l * s : (2 - 2 * l) * s);
+    min = l - 0.5 * c;
     x = c * (1 - fabs(h - 2 * floor(h / 2) - 1));
 
     switch ((int) h) {
@@ -185,7 +188,7 @@ static void _hsl2rgb(float h, float s, float l, float *r, float *g, float *b)
  * @brief Convert an array from Hue-Saturation-Lightness (HSL) to sRGB.
  *
  * This routine uses _hsl2rgb() on a float array with HSL values in
- * [0-360[x[0-1]x[0-1] to produce the equivalent float array with sRGB
+ * [0-6[x[0-1]x[0-1] to produce the equivalent float array with sRGB
  * values in [0-UCHAR_MAX].
  *
  * @param hsl input array
@@ -206,7 +209,7 @@ void hsl2rgb(const float *hsl, float *rgb, size_t size)
     b = rgb + 2 * size;
 
     for (i = 0; i < size; i++) {
-        _hsl2rgb(h[i], s[i], l[i], &r[i], &g[i], &b[i]);
+        _hsl2rgb(h[i], s[i], l[i], r + i, g + i, b + i);
         r[i] *= UCHAR_MAX;
         g[i] *= UCHAR_MAX;
         b[i] *= UCHAR_MAX;

@@ -17,9 +17,9 @@ TEMPFILE=$(tempfile)
 _log _test_memcheck ./balance_rgb 0 0 data/colors.png $TEMPFILE
 _log _test_memcheck ./balance_rgb 10 20 data/colors.png $TEMPFILE
 _log _test_memcheck ./balance_rgb 50 50 data/colors.png $TEMPFILE
-_log _test_memcheck ./balance_rgbf 0 0 data/colors.png $TEMPFILE
-_log _test_memcheck ./balance_rgbf 10 20 data/colors.png $TEMPFILE
-_log _test_memcheck ./balance_rgbf 50 50 data/colors.png $TEMPFILE
+_log _test_memcheck ./balance_hsl 0 0 data/colors.png $TEMPFILE
+_log _test_memcheck ./balance_hsl 10 20 data/colors.png $TEMPFILE
+_log _test_memcheck ./balance_hsl 50 50 data/colors.png $TEMPFILE
 rm -f $TEMPFILE
 
 

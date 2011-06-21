@@ -19,9 +19,9 @@
  * @file balance_rgb.c
  * @brief simplest color balance on RGB channels
  *
- * The input image is normalized to [0-UCHAR_MAX] on each RGB channel,
- * saturating a percentage of the pixels at the beginning and end of
- * the color space on each channel.
+ * The input image is normalized by affine transformation on each RGB
+ * channel, saturating a percentage of the pixels at the beginning and
+ * end of the color space on each channel.
  *
  * @author Nicolas Limare <nicolas.limare@cmla.ens-cachan.fr>
  * @author Jose-Luis Lisani <joseluis.lisani@uib.es>
@@ -53,9 +53,9 @@ int main(int argc, char *const *argv)
     }
     /* wrong number of parameters : simple help info */
     if (5 != argc) {
-        fprintf(stderr, "usage : %s Smin Smax in.png out.png\n", argv[0]);
-        fprintf(stderr,
-                "        SMIN and SMAX saturated pixels perc. [0...100[\n");
+        fprintf(stderr, "usage : %s Sb Sw in.png out.png\n", argv[0]);
+        fprintf(stderr, "        Sb and Sw are percentage of pixels\n");
+        fprintf(stderr, "        saturated to black and white, in [0-100[\n");
         return EXIT_FAILURE;
     }
 
@@ -63,7 +63,7 @@ int main(int argc, char *const *argv)
     smin = atof(argv[1]);
     smax = atof(argv[2]);
     if (0. > smin || 100. <= smin || 0. > smax || 100. <= smax) {
-        fprintf(stderr, "the saturation percentages must be in [0..100[\n");
+        fprintf(stderr, "the saturation percentages must be in [0-100[\n");
         return EXIT_FAILURE;
     }
 
