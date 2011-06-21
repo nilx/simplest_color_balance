@@ -6,7 +6,7 @@
 # offered as-is, without any warranty.
 
 # source code, C language
-CSRC	= io_png.c balance_lib.c balance_rgb.c balance_rgbf.c
+CSRC	= io_png.c balance_lib.c colorspace_lib.c balance_rgb.c balance_rgbf.c
 # source code, all languages (only C here)
 SRC	= $(CSRC)
 # object files (partial compilation)
