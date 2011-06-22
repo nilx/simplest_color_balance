@@ -27,29 +27,20 @@ _log make clean
 _log make
 
 echo "* compiler support"
-for CC in cc c++ gcc g++ tcc clang pathcc; do
-    if which $CC; then
-	echo "* $CC compiler"
-	_log make distclean
-	_log make CC=$CC CFLAGS=
-	_log _test_run
-    fi
-done
-for CC in icc; do
-    if which $CC; then
-	echo "* $CC compiler"
-	_log make distclean
-	_log make CC=$CC CFLAGS=-prec-div
-	_log _test_run
-    fi
-done
-for CC in gcc g++ clang; do
-    if which $CC; then
-	echo "* $CC compiler with flags"
-	_log make distclean
-	_log make CC=$CC
-	_log _test_run
-    fi
+for CC in cc c++ gcc g++ tcc nwcc clang icc pathcc; do
+    which $CC || continue
+    echo "* $CC compiler"
+    _log make distclean
+    case $CC in
+	"gcc"|"g++")
+	    _log make CC=$CC ;;
+	"icc")
+	    # default icc behaviour is wrong divisions!
+	    _log make CC=$CC CFLAGS=-prec-div ;;
+	*)
+	    _log make CC=$CC CFLAGS= ;;
+    esac
+    _log _test_run
 done
 
 _log make distclean
