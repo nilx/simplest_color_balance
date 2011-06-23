@@ -6,7 +6,7 @@
               Jose-Luis Lisani <joseluis.lisani@uib.es>
               Catalina Sbert <catalina.sbert@uib.es>
 * Copyright : (C) 2009-2011 IPOL Image Processing On Line http://www.ipol.im/
-* Licence   : GPL v3+ and BSD, see GPLv3.txt and BSD_simplified.txt
+* Licence   : GPL v3+, see GPLv3.txt
 
 # OVERVIEW
 
