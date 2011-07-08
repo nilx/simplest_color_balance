@@ -162,7 +162,7 @@ static void quantiles_u8(const unsigned char *data, size_t size,
 /**
  * @brief float comparison
  *
- * IEEE754 floats can be compared as intgers. Not *converted* to
+ * IEEE754 floats can be compared as integers. Not *converted* to
  * integers, but *read* as integers while maintaining an order.
  * cf. http://www.cygnus-software.com/papers/comparingfloats/Comparing%20floating%20point%20numbers.htm#_Toc135149455
  */
@@ -259,6 +259,8 @@ static unsigned char *rescale_u8(unsigned char *data, size_t size,
  *
  * This function operates in-place. It rescales the data by a bounded
  * affine function such that min becomes 0 and max becomes 1.
+ * Warnings similar to the ones mentioned in rescale_u8() apply about
+ * the risks of rounding errors.
  *
  * @param data input/output array
  * @param size array size
@@ -279,21 +281,11 @@ static float *rescale_f32(float *data, size_t size, float min, float max)
     }
     else {
         for (i = 0; i < size; i++) {
-            /*
-             * we can't store and reuse UCHAR_MAX / (max - min) because
-             *     105 * 255 / 126.            -> 212.5, rounded to 213
-             *     105 * (double) (255 / 126.) -> 212.4999, rounded to 212
-             */
             if (min > data[i])
                 data[i] = 0;
             else if (max < data[i])
                 data[i] = 1.;
             else
-                /*
-                 * with Intel C compiler (icc 12.0.4), use the
-                 * '-prec-div' option to avoid precision loss here,
-                 * resulting in 53. * 255. / 106. = 127.4999
-                 */
                 data[i] = (data[i] - min) / (float) (max - min);
         }
     }
