@@ -31,7 +31,7 @@
  *
  * @todo convert in-loop, no function call
  * @todo probably lots of room for speed improvements
- * @todo only compute L from RGB, then compute RGB from RGB and L
+ * @todo only compute L from RGB, then compute RGB from RGB and new L
  */
 
 #include <stdlib.h>

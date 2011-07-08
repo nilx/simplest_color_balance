@@ -17,7 +17,7 @@
 
 /**
  * @file balance_hsl.c
- * @brief simplest color balance in th HSL color space
+ * @brief simplest color balance in the HSL color space, L channel
  *
  * The input image is normalized by affine transformation on the L
  * axis, saturating a percentage of the pixels at the beginning and
@@ -90,7 +90,7 @@ int main(int argc, char *const *argv)
     rgb2hsl(rgb, hsl, size);
     /* normalize the L channel */
     (void) balance_f32(hsl + 2 * size, size, nb_min, nb_max);
-    /* convert back to HSL */
+    /* convert back to RGB */
     hsl2rgb(hsl, rgb, size);
     free(hsl);
 
