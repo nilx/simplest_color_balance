@@ -17,11 +17,12 @@
 
 /**
  * @file balance_hsi_bounded.c
- * @brief simplest color balance on the intensity scale
+ * @brief simplest color balance linear and bounded on the I channel
  *
  * The input image is normalized by affine transformation on the I
  * axis, saturating a percentage of the pixels at the beginning and
- * end of the axis. Some clipping will happen then the result is out
+ * end of the axis. This transformation is linearly applied to the R,
+ * G and B channels. Some clipping will happen then the result is out
  * of the RGB cube.
  *
  * @author Nicolas Limare <nicolas.limare@cmla.ens-cachan.fr>
@@ -96,7 +97,7 @@ int main(int argc, char *const *argv)
     inorm = (float *) malloc(size * sizeof(float));
     memcpy(inorm, irgb, size * sizeof(float));
     (void) balance_f32(inorm, size, nb_min, nb_max);
-    /* keep normalized I in [0..3*255] */
+    /* keep Inorm in [0..3*255] */
     for (i = 0; i < size; i++)
         inorm[i] *= 3 * 255.;
     /* apply the I normalization to the RGB channels: RGB = RGB * Inorm / I */
