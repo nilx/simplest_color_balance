@@ -8,9 +8,15 @@ _test_run() {
     ./balance_rgb 10 20 data/colors.png $TEMPFILE
     test "64b5d6e2fa9440b04d768b522a78d4bd  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
-    ./balance_hsl 10 20 data/colors.png $TEMPFILE
+    ./balance hsl 10 20 data/colors.png $TEMPFILE
     test "d1bad04a9942848383da68390f25ea56  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
+    ./balance hsv 10 20 data/colors.png $TEMPFILE
+#    test "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  $TEMPFILE" \
+#	= "$(md5sum $TEMPFILE)"
+    ./balance hsi 10 20 data/colors.png $TEMPFILE
+#    test "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  $TEMPFILE" \
+#	= "$(md5sum $TEMPFILE)"
     ./balance_hsi_bounded 10 20 data/colors.png $TEMPFILE
     test "cc5b7d862f573462f591003c445e84e4  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"

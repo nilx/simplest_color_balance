@@ -14,15 +14,16 @@ echo "* check memory leaks"
 _log make distclean
 _log make
 TEMPFILE=$(tempfile)
-_log _test_memcheck ./balance_rgb 0 0 data/colors.png $TEMPFILE
-_log _test_memcheck ./balance_rgb 10 20 data/colors.png $TEMPFILE
-_log _test_memcheck ./balance_rgb 50 50 data/colors.png $TEMPFILE
-_log _test_memcheck ./balance_hsl 0 0 data/colors.png $TEMPFILE
-_log _test_memcheck ./balance_hsl 10 20 data/colors.png $TEMPFILE
-_log _test_memcheck ./balance_hsl 50 50 data/colors.png $TEMPFILE
-_log _test_memcheck ./balance_hsi_bounded 0 0 data/colors.png $TEMPFILE
-_log _test_memcheck ./balance_hsi_bounded 10 20 data/colors.png $TEMPFILE
-_log _test_memcheck ./balance_hsi_bounded 50 50 data/colors.png $TEMPFILE
+for PROGRAM in balance_rgb balance_hsi_bounded; do
+    _log _test_memcheck ./$PROGRAM 0 0 data/colors.png $TEMPFILE
+    _log _test_memcheck ./$PROGRAM 23 42 data/colors.png $TEMPFILE
+    _log _test_memcheck ./$PROGRAM 50 50 data/colors.png $TEMPFILE
+done
+for MODE in hsl hsv hsi; do
+    _log _test_memcheck ./balance $MODE 0 0 data/colors.png $TEMPFILE
+    _log _test_memcheck ./balance $MODE 23 42 data/colors.png $TEMPFILE
+    _log _test_memcheck ./balance $MODE 50 50 data/colors.png $TEMPFILE
+done
 rm -f $TEMPFILE
 
 
