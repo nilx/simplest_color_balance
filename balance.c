@@ -51,7 +51,7 @@ int main(int argc, char *const *argv)
     /* wrong number of parameters : simple help info */
     if (6 != argc) {
         fprintf(stderr, "usage : %s mode Sb Sw in.png out.png\n", argv[0]);
-        fprintf(stderr, "        mode is hsl, hsv or hsi\n");
+        fprintf(stderr, "        mode is rgb, hsl, hsv or hsi\n");
         fprintf(stderr, "        Sb and Sw are percentage of pixels\n");
         fprintf(stderr, "        saturated to black and white, in [0-100[\n");
         return EXIT_FAILURE;
@@ -80,7 +80,24 @@ int main(int argc, char *const *argv)
     nb_max = size * (smax / 100.);
 
     /* select the color mode */
-    if (0 == strcmp(argv[1], "hsl")) {
+    if (0 == strcmp(argv[1], "rgb")) {
+        /*
+         * simplest color balance on RGB channels
+         *
+         * The input image is normalized by affine transformation on
+         * each RGB channel, saturating a percentage of the pixels at
+         * the beginning and end of the color space on each channel.
+         */
+        size_t i;
+        /* normalize the RGB channels */
+        (void) balance_f32(rgb, size, nb_min, nb_max);
+        (void) balance_f32(rgb + size, size, nb_min, nb_max);
+        (void) balance_f32(rgb + 2 * size, size, nb_min, nb_max);
+        /* back to [0, 255] */
+        for (i = 0; i < 3 * size; i++)
+            rgb[i] *= 255.;
+    }
+    else if (0 == strcmp(argv[1], "hsl")) {
         /*
          * simplest color balance in the HSL color space, L channel
          *
@@ -137,7 +154,7 @@ int main(int argc, char *const *argv)
         free(hsi);
     }
     else {
-        fprintf(stderr, "mode must be hsl, hsv or hsi\n");
+        fprintf(stderr, "mode must be rgb, hsl, hsv or hsi\n");
         free(rgb);
         return EXIT_FAILURE;
     }

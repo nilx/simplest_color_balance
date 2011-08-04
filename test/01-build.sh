@@ -5,7 +5,7 @@
 # simple code execution
 _test_run() {
     TEMPFILE=$(tempfile)
-    ./balance_rgb 10 20 data/colors.png $TEMPFILE
+    ./balance rgb 10 20 data/colors.png $TEMPFILE
     test "64b5d6e2fa9440b04d768b522a78d4bd  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     ./balance hsl 10 20 data/colors.png $TEMPFILE
