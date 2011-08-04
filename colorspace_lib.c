@@ -171,6 +171,109 @@ static void _hsl2rgb(float h, float s, float l, float *r, float *g, float *b)
 }
 
 /**
+ * @brief Convert an sRGB color to Hue-Saturation-Value (HSV)
+ *
+ * This routine transforms from sRGB to the hexcone HSV color space.
+ * The sRGB values are assumed to be between 0 and 1.  The output values
+ * are
+ *   H = hexagonal hue angle   (0 <= H < 6),
+ *   S = C/V                   (0 <= S <= 1),
+ *   V = max(R',G',B')         (0 <= V <= 1),
+ * where C = max(R',G',B') - min(R',G',B').  The inverse color
+ * transformation is given by _sv2rgb.
+ *
+ * @param r, g, b the input sRGB values scaled in [0,1]
+ * @param h, s, v pointers to hold the HSV result
+ *
+ * Wikipedia: http://en.wikipedia.org/wiki/HSL_and_HSV
+ */
+static void _rgb2hsv(float r, float g, float b, float *h, float *s, float *v)
+{
+    float max, min, c;
+
+    max = MAX3(r, g, b);
+    min = MIN3(r, g, b);
+    c = max - min;
+    *v = max;
+
+    if (c > 0) {
+        if (max == r) {
+            *h = (g - b) / c;
+            if (g < b)
+                *h += 6;
+        }
+        else if (max == g)
+            *h = 2 + (b - r) / c;
+        else
+            *h = 4 + (r - g) / c;
+
+        *s = c / max;
+    }
+    else {
+        *h = 0;
+        *s = 0;
+    }
+}
+
+/**
+ * @brief Convert a Hue-Saturation-Value (HSV) color to sRGB
+ *
+ * The input values are assumed to be scaled as
+ *    0 <= H < 6,
+ *    0 <= S <= 1,
+ *    0 <= V <= 1.
+ * The output sRGB values are scaled between 0 and 1.  This is the
+ * inverse transformation of _rgb2hsv.
+ *
+ * Wikipedia: http://en.wikipedia.org/wiki/HSL_and_HSV
+ */
+static void _hsv2rgb(float h, float s, float v, float *r, float *g, float *b)
+{
+    float c, min, x;
+
+    c = s * v;
+    min = v - c;
+    x = c * (1 - fabs(h - 2 * floor(h / 2) - 1));
+
+    switch ((int) h) {
+    case 0:
+        *r = min + c;
+        *g = min + x;
+        *b = min;
+        break;
+    case 1:
+        *r = min + x;
+        *g = min + c;
+        *b = min;
+        break;
+    case 2:
+        *r = min;
+        *g = min + c;
+        *b = min + x;
+        break;
+    case 3:
+        *r = min;
+        *g = min + x;
+        *b = min + c;
+        break;
+    case 4:
+        *r = min + x;
+        *g = min;
+        *b = min + c;
+        break;
+    case 5:
+        *r = min + c;
+        *g = min;
+        *b = min + x;
+        break;
+    default:
+        *r = 0;
+        *g = 0;
+        *b = 0;
+    }
+}
+
+/**
  * @brief Convert an sRGB color to Hue-Saturation-Intensity (HSI)
  *
  * This routine transforms from sRGB to the cylindrical HSI color
@@ -304,6 +407,67 @@ void hsl2rgb(const float *hsl, float *rgb, size_t size)
 
     for (i = 0; i < size; i++) {
         _hsl2rgb(h[i], s[i], l[i], r + i, g + i, b + i);
+        r[i] *= UCHAR_MAX;
+        g[i] *= UCHAR_MAX;
+        b[i] *= UCHAR_MAX;
+    }
+}
+
+/**
+ * @brief Convert an array from sRGB to Hue-Saturation-Value (HSV).
+ *
+ * This routine uses _rgb2hsv() on a float array with sRGB values
+ * in [0-UCHAR_MAX] to produce the equivalent float array
+ * with HSV values in [0-6[x[0-1]x[0-1].
+ *
+ * @param rgb input array
+ * @param hsv output array
+ * @param size array size
+ */
+void rgb2hsv(const float *rgb, float *hsv, size_t size)
+{
+    const float *r, *g, *b;
+    float *h, *s, *v;
+    size_t i;
+
+    r = rgb;
+    g = rgb + size;
+    b = rgb + 2 * size;
+    h = hsv;
+    s = hsv + size;
+    v = hsv + 2 * size;
+
+    for (i = 0; i < size; i++)
+        _rgb2hsv(r[i] / UCHAR_MAX, g[i] / UCHAR_MAX, b[i] / UCHAR_MAX,
+                 h + i, s + i, v + i);
+}
+
+/**
+ * @brief Convert an array from Hue-Saturation-Value (HSV) to sRGB.
+ *
+ * This routine uses _hsv2rgb() on a float array with HSV values in
+ * [0-6[x[0-1]x[0-1] to produce the equivalent float array with sRGB
+ * values in [0-UCHAR_MAX].
+ *
+ * @param hsv input array
+ * @param rgb output array
+ * @param size array size
+ */
+void hsv2rgb(const float *hsv, float *rgb, size_t size)
+{
+    const float *h, *s, *v;
+    float *r, *g, *b;
+    size_t i;
+
+    h = hsv;
+    s = hsv + size;
+    v = hsv + 2 * size;
+    r = rgb;
+    g = rgb + size;
+    b = rgb + 2 * size;
+
+    for (i = 0; i < size; i++) {
+        _hsv2rgb(h[i], s[i], v[i], r + i, g + i, b + i);
         r[i] *= UCHAR_MAX;
         g[i] *= UCHAR_MAX;
         b[i] *= UCHAR_MAX;
