@@ -59,6 +59,10 @@
 #define M_PI 3.14159265358979323846264338327950288
 #endif
 
+/*
+ * SCALAR FUNCTIONS
+ */
+
 /**
  * @brief Convert an sRGB color to Hue-Saturation-Lightness (HSL).
  *
@@ -103,35 +107,6 @@ static void _rgb2hsl(float r, float g, float b, float *h, float *s, float *l)
         *h = 0;
         *s = 0;
     }
-}
-
-/**
- * @brief Convert an array from sRGB to Hue-Saturation-Lightness (HSL).
- *
- * This routine uses _rgb2hsl() on a float array with sRGB values
- * in [0-UCHAR_MAX] to produce the equivalent float array
- * with HSL values in [0-6[x[0-1]x[0-1].
- *
- * @param rgb input array
- * @param hsl output array
- * @param size array size
- */
-void rgb2hsl(const float *rgb, float *hsl, size_t size)
-{
-    const float *r, *g, *b;
-    float *h, *s, *l;
-    size_t i;
-
-    r = rgb;
-    g = rgb + size;
-    b = rgb + 2 * size;
-    h = hsl;
-    s = hsl + size;
-    l = hsl + 2 * size;
-
-    for (i = 0; i < size; i++)
-        _rgb2hsl(r[i] / UCHAR_MAX, g[i] / UCHAR_MAX, b[i] / UCHAR_MAX,
-                 h + i, s + i, l + i);
 }
 
 /**
@@ -196,38 +171,6 @@ static void _hsl2rgb(float h, float s, float l, float *r, float *g, float *b)
 }
 
 /**
- * @brief Convert an array from Hue-Saturation-Lightness (HSL) to sRGB.
- *
- * This routine uses _hsl2rgb() on a float array with HSL values in
- * [0-6[x[0-1]x[0-1] to produce the equivalent float array with sRGB
- * values in [0-UCHAR_MAX].
- *
- * @param hsl input array
- * @param rgb output array
- * @param size array size
- */
-void hsl2rgb(const float *hsl, float *rgb, size_t size)
-{
-    const float *h, *s, *l;
-    float *r, *g, *b;
-    size_t i;
-
-    h = hsl;
-    s = hsl + size;
-    l = hsl + 2 * size;
-    r = rgb;
-    g = rgb + size;
-    b = rgb + 2 * size;
-
-    for (i = 0; i < size; i++) {
-        _hsl2rgb(h[i], s[i], l[i], r + i, g + i, b + i);
-        r[i] *= UCHAR_MAX;
-        g[i] *= UCHAR_MAX;
-        b[i] *= UCHAR_MAX;
-    }
-}
-
-/**
  * @brief Convert an sRGB color to Hue-Saturation-Intensity (HSI)
  *
  * This routine transforms from sRGB to the cylindrical HSI color
@@ -261,35 +204,6 @@ static void _rgb2hsi(float r, float g, float b, float *h, float *s, float *i)
         *h = 0;
         *s = 0;
     }
-}
-
-/**
- * @brief Convert an array from sRGB to Hue-Saturation-Intensity (HSI).
- *
- * This routine uses _rgb2hsi() on a float array with sRGB values
- * in [0-UCHAR_MAX] to produce the equivalent float array
- * with HSI values in [0-6[x[0-1]x[0-1].
- *
- * @param rgb input array
- * @param hsi output array
- * @param size array size
- */
-void rgb2hsi(const float *rgb, float *hsi, size_t size)
-{
-    const float *r, *g, *b;
-    float *h, *s, *i;
-    size_t j;
-
-    r = rgb;
-    g = rgb + size;
-    b = rgb + 2 * size;
-    h = hsi;
-    s = hsi + size;
-    i = hsi + 2 * size;
-
-    for (j = 0; j < size; j++)
-        _rgb2hsi(r[j] / UCHAR_MAX, g[j] / UCHAR_MAX, b[j] / UCHAR_MAX,
-                 h + j, s + j, i + j);
 }
 
 /**
@@ -329,6 +243,100 @@ static void _hsi2rgb(float h, float s, float i, float *r, float *g, float *b)
         *b = i * (1 + s * cos(h * (M_PI / 3)) / cos((1 - h) * (M_PI / 3)));
         *r = 3 * i - *g - *b;
     }
+}
+
+/*
+ * VECTOR FUNCTIONS
+ */
+
+/**
+ * @brief Convert an array from sRGB to Hue-Saturation-Lightness (HSL).
+ *
+ * This routine uses _rgb2hsl() on a float array with sRGB values
+ * in [0-UCHAR_MAX] to produce the equivalent float array
+ * with HSL values in [0-6[x[0-1]x[0-1].
+ *
+ * @param rgb input array
+ * @param hsl output array
+ * @param size array size
+ */
+void rgb2hsl(const float *rgb, float *hsl, size_t size)
+{
+    const float *r, *g, *b;
+    float *h, *s, *l;
+    size_t i;
+
+    r = rgb;
+    g = rgb + size;
+    b = rgb + 2 * size;
+    h = hsl;
+    s = hsl + size;
+    l = hsl + 2 * size;
+
+    for (i = 0; i < size; i++)
+        _rgb2hsl(r[i] / UCHAR_MAX, g[i] / UCHAR_MAX, b[i] / UCHAR_MAX,
+                 h + i, s + i, l + i);
+}
+
+/**
+ * @brief Convert an array from Hue-Saturation-Lightness (HSL) to sRGB.
+ *
+ * This routine uses _hsl2rgb() on a float array with HSL values in
+ * [0-6[x[0-1]x[0-1] to produce the equivalent float array with sRGB
+ * values in [0-UCHAR_MAX].
+ *
+ * @param hsl input array
+ * @param rgb output array
+ * @param size array size
+ */
+void hsl2rgb(const float *hsl, float *rgb, size_t size)
+{
+    const float *h, *s, *l;
+    float *r, *g, *b;
+    size_t i;
+
+    h = hsl;
+    s = hsl + size;
+    l = hsl + 2 * size;
+    r = rgb;
+    g = rgb + size;
+    b = rgb + 2 * size;
+
+    for (i = 0; i < size; i++) {
+        _hsl2rgb(h[i], s[i], l[i], r + i, g + i, b + i);
+        r[i] *= UCHAR_MAX;
+        g[i] *= UCHAR_MAX;
+        b[i] *= UCHAR_MAX;
+    }
+}
+
+/**
+ * @brief Convert an array from sRGB to Hue-Saturation-Intensity (HSI).
+ *
+ * This routine uses _rgb2hsi() on a float array with sRGB values
+ * in [0-UCHAR_MAX] to produce the equivalent float array
+ * with HSI values in [0-6[x[0-1]x[0-1].
+ *
+ * @param rgb input array
+ * @param hsi output array
+ * @param size array size
+ */
+void rgb2hsi(const float *rgb, float *hsi, size_t size)
+{
+    const float *r, *g, *b;
+    float *h, *s, *i;
+    size_t j;
+
+    r = rgb;
+    g = rgb + size;
+    b = rgb + 2 * size;
+    h = hsi;
+    s = hsi + size;
+    i = hsi + 2 * size;
+
+    for (j = 0; j < size; j++)
+        _rgb2hsi(r[j] / UCHAR_MAX, g[j] / UCHAR_MAX, b[j] / UCHAR_MAX,
+                 h + j, s + j, i + j);
 }
 
 /**
