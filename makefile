@@ -16,7 +16,7 @@ OBJ	= $(CSRC:.c=.o)
 BIN	= balance_rgb balance_hsl balance_hsi_bounded
 
 # standard C compiler optimization options
-COPT	= -O3 -funroll-loops -fomit-frame-pointer -ffast-math
+COPT	= -O3 -funroll-loops -fomit-frame-pointer
 # complete C compiler options
 CFLAGS	= -ansi -pedantic -Wall -Wextra -Werror -pipe $(COPT)
 # linker options
