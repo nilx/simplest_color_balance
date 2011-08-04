@@ -51,7 +51,8 @@ int main(int argc, char *const *argv)
     /* wrong number of parameters : simple help info */
     if (6 != argc) {
         fprintf(stderr, "usage : %s mode Sb Sw in.png out.png\n", argv[0]);
-        fprintf(stderr, "        mode is rgb, hsl, hsv or hsi\n");
+        fprintf(stderr,
+                "        mode is rgb, hsl, hsv, hsi or hsi_bounded\n");
         fprintf(stderr, "        Sb and Sw are percentage of pixels\n");
         fprintf(stderr, "        saturated to black and white, in [0-100[\n");
         return EXIT_FAILURE;
@@ -153,8 +154,45 @@ int main(int argc, char *const *argv)
         hsi2rgb(hsi, rgb, size);
         free(hsi);
     }
+    else if (0 == strcmp(argv[1], "hsi_bounded")) {
+        /*
+         * simplest color balance based on the I channel, bounded
+         *
+         * The input image is normalized by affine transformation on
+         * the I axis, saturating a percentage of the pixels at the
+         * beginning and end of the axis. This transformation is
+         * linearly applied to the R, G and B channels. Some clipping
+         * will happen when the result is out of the RGB cube.
+         */
+        float *irgb, *inorm;    /* intensity scale */
+        size_t i;
+        double s;
+        /* compute I=R+G+B instead of (R+G+B)/3 to save a division */
+        irgb = (float *) malloc(size * sizeof(float));
+        for (i = 0; i < size; i++)
+            irgb[i] = rgb[i] + rgb[i + size] + rgb[i + 2 * size];
+        /* copy and normalize I */
+        inorm = (float *) malloc(size * sizeof(float));
+        memcpy(inorm, irgb, size * sizeof(float));
+        (void) balance_f32(inorm, size, nb_min, nb_max);
+        /* keep Inorm in [0..3*255] */
+        for (i = 0; i < size; i++)
+            inorm[i] *= 3 * 255.;
+        /*
+         * apply the I normalization to the RGB channels:
+         * RGB = RGB * Inorm / I
+         */
+        for (i = 0; i < size; i++) {
+            s = inorm[i] / irgb[i];
+            rgb[i] *= s;
+            rgb[i + size] *= s;
+            rgb[i + 2 * size] *= s;
+        }
+        free(irgb);
+        free(inorm);
+    }
     else {
-        fprintf(stderr, "mode must be rgb, hsl, hsv or hsi\n");
+        fprintf(stderr, "mode must be rgb, hsl, hsv, hsi or hsi_bounded\n");
         free(rgb);
         return EXIT_FAILURE;
     }

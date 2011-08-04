@@ -17,7 +17,7 @@ _test_run() {
     ./balance hsi 10 20 data/colors.png $TEMPFILE
 #    test "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  $TEMPFILE" \
 #	= "$(md5sum $TEMPFILE)"
-    ./balance_hsi_bounded 10 20 data/colors.png $TEMPFILE
+    ./balance hsi_bounded 10 20 data/colors.png $TEMPFILE
     test "cc5b7d862f573462f591003c445e84e4  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     rm -f $TEMPFILE
