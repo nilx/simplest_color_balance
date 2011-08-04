@@ -90,21 +90,21 @@ int main(int argc, char *const *argv)
      */
     /* I = R + G + B instead of (R + G + B) / 3 to save a division */
     irgb = (float *) malloc(size * sizeof(float));
-    for(i=0; i<size; i++)
-	irgb[i] = rgb[i] + rgb[i + size] + rgb[i + 2 * size];
+    for (i = 0; i < size; i++)
+        irgb[i] = rgb[i] + rgb[i + size] + rgb[i + 2 * size];
     /* copy and normalize I */
     inorm = (float *) malloc(size * sizeof(float));
     memcpy(inorm, irgb, size * sizeof(float));
     (void) balance_f32(inorm, size, nb_min, nb_max);
     /* keep normalized I in [0..3*255] */
-    for(i=0; i<size; i++)
-	inorm[i] *= 3 * 255.;
+    for (i = 0; i < size; i++)
+        inorm[i] *= 3 * 255.;
     /* apply the I normalization to the RGB channels: RGB = RGB * Inorm / I */
-    for(i=0; i<size; i++) {
-	s = inorm[i] / irgb[i];
-	rgb[i] *= s;
-	rgb[i + size] *= s;
-	rgb[i + 2 * size] *= s;
+    for (i = 0; i < size; i++) {
+        s = inorm[i] / irgb[i];
+        rgb[i] *= s;
+        rgb[i + size] *= s;
+        rgb[i + 2 * size] *= s;
     }
     free(irgb);
     free(inorm);
