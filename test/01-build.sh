@@ -12,11 +12,11 @@ _test_run() {
     test "d1bad04a9942848383da68390f25ea56  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     ./balance hsv 10 20 data/colors.png $TEMPFILE
-#    test "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  $TEMPFILE" \
-#	= "$(md5sum $TEMPFILE)"
+    test "b461f7d6dbdd88d152ac4ba2003c7c34  $TEMPFILE" \
+	= "$(md5sum $TEMPFILE)"
     ./balance hsi 10 20 data/colors.png $TEMPFILE
-#    test "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  $TEMPFILE" \
-#	= "$(md5sum $TEMPFILE)"
+    test "693b897ac144e7cd8cc569cdf454e053  $TEMPFILE" \
+	= "$(md5sum $TEMPFILE)"
     ./balance hsi_bounded 10 20 data/colors.png $TEMPFILE
     test "2088a1faf7af5d046545148b592d52bc  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
@@ -45,7 +45,7 @@ for CC in cc c++ gcc g++ tcc nwcc clang icc pathcc suncc; do
 	    _log make CC=$CC ;;
 	"icc")
 	    # default icc behaviour is wrong divisions!
-	    _log make CC=$CC CFLAGS=-prec-div ;;
+	    _log make CC=$CC CFLAGS="-fp-model precise";;
 	*)
 	    _log make CC=$CC CFLAGS= ;;
     esac
