@@ -155,7 +155,6 @@ static void quantiles_u8(const unsigned char *data, size_t size,
             i++;
         *ptr_max = (unsigned char) i;
     }
-
     return;
 }
 
@@ -186,7 +185,7 @@ static int cmp_f32(const void *a, const void *b)
  *
  * @todo instead of sorting the whole array (expensive), select
  * pertinent values with a 128 bins histogram then sort the bins
- * around the good bins
+ * around the good bin
  */
 static void quantiles_f32(const float *data, size_t size,
                           size_t nb_min, size_t nb_max,
@@ -267,8 +266,6 @@ static unsigned char *rescale_u8(unsigned char *data, size_t size,
  * @param min, max the minimum and maximum of the input array
  *
  * @return data
- *
- * @todo rescale to [0..1]?
  */
 static float *rescale_f32(float *data, size_t size, float min, float max)
 {

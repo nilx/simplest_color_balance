@@ -377,8 +377,7 @@ void rgb2hsl(const float *rgb, float *hsl, size_t size)
     l = hsl + 2 * size;
 
     for (i = 0; i < size; i++)
-        _rgb2hsl(r[i] / UCHAR_MAX, g[i] / UCHAR_MAX, b[i] / UCHAR_MAX,
-                 h + i, s + i, l + i);
+        _rgb2hsl(r[i], g[i], b[i], h + i, s + i, l + i);
 }
 
 /**
@@ -405,12 +404,8 @@ void hsl2rgb(const float *hsl, float *rgb, size_t size)
     g = rgb + size;
     b = rgb + 2 * size;
 
-    for (i = 0; i < size; i++) {
+    for (i = 0; i < size; i++)
         _hsl2rgb(h[i], s[i], l[i], r + i, g + i, b + i);
-        r[i] *= UCHAR_MAX;
-        g[i] *= UCHAR_MAX;
-        b[i] *= UCHAR_MAX;
-    }
 }
 
 /**
@@ -438,8 +433,7 @@ void rgb2hsv(const float *rgb, float *hsv, size_t size)
     v = hsv + 2 * size;
 
     for (i = 0; i < size; i++)
-        _rgb2hsv(r[i] / UCHAR_MAX, g[i] / UCHAR_MAX, b[i] / UCHAR_MAX,
-                 h + i, s + i, v + i);
+        _rgb2hsv(r[i], g[i], b[i], h + i, s + i, v + i);
 }
 
 /**
@@ -466,12 +460,8 @@ void hsv2rgb(const float *hsv, float *rgb, size_t size)
     g = rgb + size;
     b = rgb + 2 * size;
 
-    for (i = 0; i < size; i++) {
+    for (i = 0; i < size; i++)
         _hsv2rgb(h[i], s[i], v[i], r + i, g + i, b + i);
-        r[i] *= UCHAR_MAX;
-        g[i] *= UCHAR_MAX;
-        b[i] *= UCHAR_MAX;
-    }
 }
 
 /**
@@ -499,8 +489,7 @@ void rgb2hsi(const float *rgb, float *hsi, size_t size)
     i = hsi + 2 * size;
 
     for (j = 0; j < size; j++)
-        _rgb2hsi(r[j] / UCHAR_MAX, g[j] / UCHAR_MAX, b[j] / UCHAR_MAX,
-                 h + j, s + j, i + j);
+        _rgb2hsi(r[j], g[j], b[j], h + j, s + j, i + j);
 }
 
 /**
@@ -527,10 +516,6 @@ void hsi2rgb(const float *hsi, float *rgb, size_t size)
     g = rgb + size;
     b = rgb + 2 * size;
 
-    for (j = 0; j < size; j++) {
+    for (j = 0; j < size; j++)
         _hsi2rgb(h[j], s[j], i[j], r + j, g + j, b + j);
-        r[j] *= UCHAR_MAX;
-        g[j] *= UCHAR_MAX;
-        b[j] *= UCHAR_MAX;
-    }
 }

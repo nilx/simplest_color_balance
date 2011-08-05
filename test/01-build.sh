@@ -6,7 +6,7 @@
 _test_run() {
     TEMPFILE=$(tempfile)
     ./balance rgb 10 20 data/colors.png $TEMPFILE
-    test "64b5d6e2fa9440b04d768b522a78d4bd  $TEMPFILE" \
+    test "dac4d6a6add6aabac2e238f8b1f4713d  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     ./balance hsl 10 20 data/colors.png $TEMPFILE
     test "d1bad04a9942848383da68390f25ea56  $TEMPFILE" \
@@ -18,7 +18,7 @@ _test_run() {
 #    test "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  $TEMPFILE" \
 #	= "$(md5sum $TEMPFILE)"
     ./balance hsi_bounded 10 20 data/colors.png $TEMPFILE
-    test "cc5b7d862f573462f591003c445e84e4  $TEMPFILE" \
+    test "5b5cf513ee5f46b98878fd186b1669ce  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     rm -f $TEMPFILE
 }

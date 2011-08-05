@@ -42,6 +42,7 @@ int main(int argc, char *const *argv)
     size_t nx, ny, size;        /* data size */
     size_t nb_min, nb_max;      /* number of saturated pixels */
     float *rgb;                 /* input/output data */
+    size_t i;
 
     /* "-v" option : version info */
     if (2 <= argc && 0 == strcmp("-v", argv[1])) {
@@ -66,12 +67,17 @@ int main(int argc, char *const *argv)
         return EXIT_FAILURE;
     }
 
-    /* read the PNG image */
+    /* read the PNG image in [0-1] */
+    /**
+     * @todo correct io_png API
+     */
     if (NULL == (rgb = io_png_read_f32_rgb(argv[4], &nx, &ny))) {
         fprintf(stderr, "the image could not be properly read\n");
         return EXIT_FAILURE;
     }
     size = nx * ny;
+    for (i = 0; i < 3 * size; i++)
+        rgb[i] /= 255.;
 
     /*
      * we saturate nb_min pixels on bottom
@@ -84,23 +90,21 @@ int main(int argc, char *const *argv)
     if (0 == strcmp(argv[1], "rgb")) {
         /*
          * simplest color balance on RGB channels
+         * ======================================
          *
          * The input image is normalized by affine transformation on
          * each RGB channel, saturating a percentage of the pixels at
          * the beginning and end of the color space on each channel.
          */
-        size_t i;
         /* normalize the RGB channels */
         (void) balance_f32(rgb, size, nb_min, nb_max);
         (void) balance_f32(rgb + size, size, nb_min, nb_max);
         (void) balance_f32(rgb + 2 * size, size, nb_min, nb_max);
-        /* back to [0, 255] */
-        for (i = 0; i < 3 * size; i++)
-            rgb[i] *= 255.;
     }
     else if (0 == strcmp(argv[1], "hsl")) {
         /*
          * simplest color balance in the HSL color space, L channel
+         * ========================================================
          *
          * The input image is normalized by affine transformation on
          * the L axis, saturating a percentage of the pixels at the
@@ -119,6 +123,7 @@ int main(int argc, char *const *argv)
     else if (0 == strcmp(argv[1], "hsv")) {
         /*
          * simplest color balance in the HSV color space, V channel
+         * ========================================================
          *
          * The input image is normalized by affine transformation on
          * the V axis, saturating a percentage of the pixels at the
@@ -137,6 +142,7 @@ int main(int argc, char *const *argv)
     else if (0 == strcmp(argv[1], "hsi")) {
         /*
          * simplest color balance in the HSI color space, I channel
+         * ========================================================
          *
          * The input image is normalized by affine transformation on
          * the I axis, saturating a percentage of the pixels at the
@@ -157,15 +163,16 @@ int main(int argc, char *const *argv)
     else if (0 == strcmp(argv[1], "hsi_bounded")) {
         /*
          * simplest color balance based on the I channel, bounded
+         * ======================================================
          *
          * The input image is normalized by affine transformation on
          * the I axis, saturating a percentage of the pixels at the
          * beginning and end of the axis. This transformation is
-         * linearly applied to the R, G and B channels. Some clipping
-         * will happen when the result is out of the RGB cube.
+         * linearly applied to the R, G and B channels. The HSI cube
+         * is not stable by this operation, so some clipping will
+         * happen when the result is out of the RGB cube.
          */
         float *irgb, *inorm;    /* intensity scale */
-        size_t i;
         double s;
         /* compute I=R+G+B instead of (R+G+B)/3 to save a division */
         irgb = (float *) malloc(size * sizeof(float));
@@ -175,9 +182,12 @@ int main(int argc, char *const *argv)
         inorm = (float *) malloc(size * sizeof(float));
         memcpy(inorm, irgb, size * sizeof(float));
         (void) balance_f32(inorm, size, nb_min, nb_max);
-        /* keep Inorm in [0..3*255] */
+        /* keep Inorm in [0..3] */
+        /**
+         * @todo optional balance_f32 version with target min/max values
+         */
         for (i = 0; i < size; i++)
-            inorm[i] *= 3 * 255.;
+            inorm[i] *= 3.;
         /*
          * apply the I normalization to the RGB channels:
          * RGB = RGB * Inorm / I
@@ -197,7 +207,12 @@ int main(int argc, char *const *argv)
         return EXIT_FAILURE;
     }
 
-    /* write the PNG image and free the memory space */
+    /* write the PNG image from [0,1] and free the memory space */
+    /**
+     * @todo correct io_png API
+     */
+    for (i = 0; i < 3 * size; i++)
+        rgb[i] *= 255.;
     io_png_write_f32(argv[5], rgb, nx, ny, 3);
     free(rgb);
 
