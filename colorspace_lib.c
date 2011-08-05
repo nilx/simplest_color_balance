@@ -107,6 +107,7 @@ static void _rgb2hsl(float r, float g, float b, float *h, float *s, float *l)
         *h = 0;
         *s = 0;
     }
+    return;
 }
 
 /**
@@ -168,6 +169,7 @@ static void _hsl2rgb(float h, float s, float l, float *r, float *g, float *b)
         *g = 0;
         *b = 0;
     }
+    return;
 }
 
 /**
@@ -213,6 +215,7 @@ static void _rgb2hsv(float r, float g, float b, float *h, float *s, float *v)
         *h = 0;
         *s = 0;
     }
+    return;
 }
 
 /**
@@ -271,6 +274,7 @@ static void _hsv2rgb(float h, float s, float v, float *r, float *g, float *b)
         *g = 0;
         *b = 0;
     }
+    return;
 }
 
 /**
@@ -307,6 +311,7 @@ static void _rgb2hsi(float r, float g, float b, float *h, float *s, float *i)
         *h = 0;
         *s = 0;
     }
+    return;
 }
 
 /**
@@ -346,6 +351,7 @@ static void _hsi2rgb(float h, float s, float i, float *r, float *g, float *b)
         *b = i * (1 + s * cos(h * (M_PI / 3)) / cos((1 - h) * (M_PI / 3)));
         *r = 3 * i - *g - *b;
     }
+    return;
 }
 
 /*
@@ -378,6 +384,7 @@ void rgb2hsl(const float *rgb, float *hsl, size_t size)
 
     for (i = 0; i < size; i++)
         _rgb2hsl(r[i], g[i], b[i], h + i, s + i, l + i);
+    return;
 }
 
 /**
@@ -406,6 +413,7 @@ void hsl2rgb(const float *hsl, float *rgb, size_t size)
 
     for (i = 0; i < size; i++)
         _hsl2rgb(h[i], s[i], l[i], r + i, g + i, b + i);
+    return;
 }
 
 /**
@@ -434,6 +442,7 @@ void rgb2hsv(const float *rgb, float *hsv, size_t size)
 
     for (i = 0; i < size; i++)
         _rgb2hsv(r[i], g[i], b[i], h + i, s + i, v + i);
+    return;
 }
 
 /**
@@ -462,6 +471,7 @@ void hsv2rgb(const float *hsv, float *rgb, size_t size)
 
     for (i = 0; i < size; i++)
         _hsv2rgb(h[i], s[i], v[i], r + i, g + i, b + i);
+    return;
 }
 
 /**
@@ -490,6 +500,7 @@ void rgb2hsi(const float *rgb, float *hsi, size_t size)
 
     for (j = 0; j < size; j++)
         _rgb2hsi(r[j], g[j], b[j], h + j, s + j, i + j);
+    return;
 }
 
 /**
@@ -518,4 +529,5 @@ void hsi2rgb(const float *hsi, float *rgb, size_t size)
 
     for (j = 0; j < size; j++)
         _hsi2rgb(h[j], s[j], i[j], r + j, g + j, b + j);
+    return;
 }
