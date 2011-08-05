@@ -244,8 +244,8 @@ static unsigned char *rescale_u8(unsigned char *data, size_t size,
              *     105 * 255 / 126.            -> 212.5, rounded to 213
              *     105 * (double) (255 / 126.) -> 212.4999, rounded to 212
              */
-            norm[i] = (unsigned char) floor((i - min) * UCHAR_MAX
-                                            / (double) (max - min) + .5);
+            norm[i] = (unsigned char) ((i - min) * UCHAR_MAX
+                                       / (double) (max - min) + .5);
         /* use the normalization table to transform the data */
         for (i = 0; i < size; i++)
             data[i] = norm[(size_t) data[i]];
