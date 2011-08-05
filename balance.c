@@ -174,20 +174,16 @@ int main(int argc, char *const *argv)
          */
         float *irgb, *inorm;    /* intensity scale */
         double s;
-        /* compute I=R+G+B instead of (R+G+B)/3 to save a division */
+        /**
+         * @todo work with I=R+G+B instead of (R+G+B)/3 to save a division
+         */
         irgb = (float *) malloc(size * sizeof(float));
         for (i = 0; i < size; i++)
-            irgb[i] = rgb[i] + rgb[i + size] + rgb[i + 2 * size];
+            irgb[i] = (rgb[i] + rgb[i + size] + rgb[i + 2 * size]) / 3;
         /* copy and normalize I */
         inorm = (float *) malloc(size * sizeof(float));
         memcpy(inorm, irgb, size * sizeof(float));
         (void) balance_f32(inorm, size, nb_min, nb_max);
-        /* keep Inorm in [0..3] */
-        /**
-         * @todo optional balance_f32 version with target min/max values
-         */
-        for (i = 0; i < size; i++)
-            inorm[i] *= 3.;
         /*
          * apply the I normalization to the RGB channels:
          * RGB = RGB * Inorm / I
