@@ -23,7 +23,7 @@
 
  * The conversion code is derived from Pascal Getreuer's colorspace
  * conversion library; he explicitely allowed the relicensing of the
- * RGB/HSL functions from BSD to GPL.
+ * RGB/HSL/HSV/HSI functions from BSD to GPL.
  * http://www.math.ucla.edu/~getreuer/colorspace.html
  *
  * @author Pascal Getreuer <pascal.getreuer@cmla.ens-cachan.fr>
