@@ -140,6 +140,7 @@ int main(int argc, char *const *argv)
         free(hsv);
     }
     else if (0 == strcmp(argv[1], "hsi")) {
+        /** @todo use a better keyword */
         /*
          * simplest color balance in the HSI color space, I channel
          * ========================================================
@@ -152,6 +153,7 @@ int main(int argc, char *const *argv)
          */
         /* convert to HSI */
         float *hsi;
+        size_t i;
         hsi = (float *) malloc(3 * size * sizeof(float));
         rgb2hsi(rgb, hsi, size);
         /* normalize the I channel */
@@ -159,6 +161,15 @@ int main(int argc, char *const *argv)
         /* convert back to RGB */
         hsi2rgb(hsi, rgb, size);
         free(hsi);
+        /* clip RGB values to [0, 1] */
+        /** @todo add another mode: clip before hsi2rgb */
+        for (i = 0; i < 3 * size; i++) {
+            /** @todo use boolean arithmetics, avoid if.. branching */
+            if (rgb[i] > 1.)
+                rgb[i] = 1.;
+            if (rgb[i] < 0.)
+                rgb[i] = 0.;
+        }
     }
     else if (0 == strcmp(argv[1], "hsi_bounded")) {
         /*
