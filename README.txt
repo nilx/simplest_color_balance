@@ -37,7 +37,8 @@ implicitly converted to 8bit color RGB.
 # REQUIREMENTS
 
 The code is written in ANSI C, and should compile on any system with
-an ANSI C compiler.
+an ANSI C compiler. It has been tested on Liniu with the gcc, g++,
+icc, pathcc, suncc, tcc and nwcc compilers.
 
 The libpng header and the libpng and zlib libraries are required
 on the system for compilation and execution. See
@@ -63,6 +64,20 @@ Alternatively, you can manually compile
 * `in.png`  : input image
 * `out.png` : output image
               both images are PNG; you can use "-" for standard input/output
+
+# FILES
+
+* balance.c            : command-line handler
+* balance_lib.c/h      : base algorithm in one dimension
+* colorbalance_lib.c/h : algorithm variants for color images
+* colorspace_lib.c/h   : colorspace conversion tools
+* io_png.c/h           : simplified interface to libpng
+* makefile             : build configuration
+* test                 : automates test scripts
+* data                 : example and test images
+* GPLv3.txt            : source code license
+* doc                  : doxygen files
+* README.txt           : this file
 
 # CREDITS
 
