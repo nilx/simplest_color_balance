@@ -278,7 +278,7 @@ static float *rescale_f32(float *data, size_t size, float min, float max)
     }
     else {
         for (i = 0; i < size; i++) {
-	    /** @todo try using boolean arithmetics */
+            /** @todo try using boolean arithmetics */
             if (min > data[i])
                 data[i] = 0;
             else if (max < data[i])

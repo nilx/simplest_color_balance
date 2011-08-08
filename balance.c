@@ -17,7 +17,7 @@
 
 /**
  * @file balance.c
- * @brief various color balance schemes
+ * @brief command-line handler for the color balance algorithms
  *
  * @author Nicolas Limare <nicolas.limare@cmla.ens-cachan.fr>
  * @author Jose-Luis Lisani <joseluis.lisani@uib.es>
@@ -30,8 +30,7 @@
 #include <limits.h>
 
 #include "io_png.h"
-#include "balance_lib.h"
-#include "colorspace_lib.h"
+#include "colorbalance_lib.h"
 
 /**
  * @brief main function call
@@ -52,10 +51,11 @@ int main(int argc, char *const *argv)
     /* wrong number of parameters : simple help info */
     if (6 != argc) {
         fprintf(stderr, "usage : %s mode Sb Sw in.png out.png\n", argv[0]);
-        fprintf(stderr,
-                "        mode is rgb, hsl, hsv, hsi or hsi_bounded\n");
+        fprintf(stderr, "        mode is rgb, hsl, hsv, hsi\n");
+        fprintf(stderr, "          or hsi_bounded\n");
         fprintf(stderr, "        Sb and Sw are percentage of pixels\n");
-        fprintf(stderr, "        saturated to black and white, in [0-100[\n");
+        fprintf(stderr, "          saturated to black and white,\n");
+        fprintf(stderr, "          in [0-100[\n");
         return EXIT_FAILURE;
     }
 
@@ -68,9 +68,7 @@ int main(int argc, char *const *argv)
     }
 
     /* read the PNG image in [0-1] */
-    /**
-     * @todo correct io_png API
-     */
+    /** @todo correct io_png API */
     if (NULL == (rgb = io_png_read_f32_rgb(argv[4], &nx, &ny))) {
         fprintf(stderr, "the image could not be properly read\n");
         return EXIT_FAILURE;
@@ -86,141 +84,27 @@ int main(int argc, char *const *argv)
     nb_min = size * (smin / 100.);
     nb_max = size * (smax / 100.);
 
-    /* select the color mode */
-    if (0 == strcmp(argv[1], "rgb")) {
-        /*
-         * simplest color balance on RGB channels
-         * ======================================
-         *
-         * The input image is normalized by affine transformation on
-         * each RGB channel, saturating a percentage of the pixels at
-         * the beginning and end of the color space on each channel.
-         */
-        /* normalize the RGB channels */
-        (void) balance_f32(rgb, size, nb_min, nb_max);
-        (void) balance_f32(rgb + size, size, nb_min, nb_max);
-        (void) balance_f32(rgb + 2 * size, size, nb_min, nb_max);
-    }
-    else if (0 == strcmp(argv[1], "hsl")) {
-        /*
-         * simplest color balance in the HSL color space, L channel
-         * ========================================================
-         *
-         * The input image is normalized by affine transformation on
-         * the L axis, saturating a percentage of the pixels at the
-         * beginning and end of the axis.
-         */
-	/** @todo compute L from RGB, then compute RGB from RGB and new L */
-        /* convert to HSL */
-        float *hsl;
-        hsl = (float *) malloc(3 * size * sizeof(float));
-        rgb2hsl(rgb, hsl, size);
-        /* normalize the L channel */
-        (void) balance_f32(hsl + 2 * size, size, nb_min, nb_max);
-        /* convert back to RGB */
-        hsl2rgb(hsl, rgb, size);
-        free(hsl);
-    }
-    else if (0 == strcmp(argv[1], "hsv")) {
-        /*
-         * simplest color balance in the HSV color space, V channel
-         * ========================================================
-         *
-         * The input image is normalized by affine transformation on
-         * the V axis, saturating a percentage of the pixels at the
-         * beginning and end of the axis.
-         */
-	/** @todo compute V from RGB, then compute RGB from RGB and new V */
-        /* convert to HSV */
-        float *hsv;
-        hsv = (float *) malloc(3 * size * sizeof(float));
-        rgb2hsv(rgb, hsv, size);
-        /* normalize the V channel */
-        (void) balance_f32(hsv + 2 * size, size, nb_min, nb_max);
-        /* convert back to RGB */
-        hsv2rgb(hsv, rgb, size);
-        free(hsv);
-    }
-    else if (0 == strcmp(argv[1], "hsi")) {
+    /* select the color mode and execute the algorithm */
+    if (0 == strcmp(argv[1], "rgb"))
+        (void) colorbalance_rgb_f32(rgb, size, nb_min, nb_max);
+    else if (0 == strcmp(argv[1], "hsl"))
+        (void) colorbalance_hsl_f32(rgb, size, nb_min, nb_max);
+    else if (0 == strcmp(argv[1], "hsv"))
+        (void) colorbalance_hsv_f32(rgb, size, nb_min, nb_max);
+    else if (0 == strcmp(argv[1], "hsi"))
         /** @todo use a better keyword */
-        /*
-         * simplest color balance in the HSI color space, I channel
-         * ========================================================
-         *
-         * The input image is normalized by affine transformation on
-         * the I axis, saturating a percentage of the pixels at the
-         * beginning and end of the axis. After converting back to the
-         * RGB model, if the result is out of the RGB cube it will be
-         * clipped.
-         */
-	/** @todo compute I from RGB, then compute RGB from RGB and new I */
-        /* convert to HSI */
-        float *hsi;
-        size_t i;
-        hsi = (float *) malloc(3 * size * sizeof(float));
-        rgb2hsi(rgb, hsi, size);
-        /* normalize the I channel */
-        (void) balance_f32(hsi + 2 * size, size, nb_min, nb_max);
-        /* convert back to RGB */
-        hsi2rgb(hsi, rgb, size);
-        free(hsi);
-        /* clip RGB values to [0, 1] */
-        /** @todo add another mode: clip before hsi2rgb */
-        for (i = 0; i < 3 * size; i++) {
-            /** @todo use boolean arithmetics, avoid if.. branching */
-            if (rgb[i] > 1.)
-                rgb[i] = 1.;
-            if (rgb[i] < 0.)
-                rgb[i] = 0.;
-        }
-    }
-    else if (0 == strcmp(argv[1], "hsi_bounded")) {
-        /*
-         * simplest color balance based on the I channel, bounded
-         * ======================================================
-         *
-         * The input image is normalized by affine transformation on
-         * the I axis, saturating a percentage of the pixels at the
-         * beginning and end of the axis. This transformation is
-         * linearly applied to the R, G and B channels. The HSI cube
-         * is not stable by this operation, so some clipping will
-         * happen when the result is out of the RGB cube.
-         */
-        float *irgb, *inorm;    /* intensity scale */
-        double s;
-        /**
-         * @todo work with I=R+G+B instead of (R+G+B)/3 to save a division
-         */
-        irgb = (float *) malloc(size * sizeof(float));
-        for (i = 0; i < size; i++)
-            irgb[i] = (rgb[i] + rgb[i + size] + rgb[i + 2 * size]) / 3;
-        /* copy and normalize I */
-        inorm = (float *) malloc(size * sizeof(float));
-        memcpy(inorm, irgb, size * sizeof(float));
-        (void) balance_f32(inorm, size, nb_min, nb_max);
-        /*
-         * apply the I normalization to the RGB channels:
-         * RGB = RGB * Inorm / I
-         */
-        for (i = 0; i < size; i++) {
-            s = inorm[i] / irgb[i];
-            rgb[i] *= s;
-            rgb[i + size] *= s;
-            rgb[i + 2 * size] *= s;
-        }
-        free(irgb);
-        free(inorm);
-    }
+        (void) colorbalance_hsi_f32(rgb, size, nb_min, nb_max);
+    else if (0 == strcmp(argv[1], "hsi_bounded"))
+        (void) colorbalance_hsi_bounded_f32(rgb, size, nb_min, nb_max);
     else {
-        fprintf(stderr, "mode must be rgb, hsl, hsv, hsi or hsi_bounded\n");
+        fprintf(stderr, "mode must be rgb, hsl, hsv, hsi "
+                "or hsi_bounded\n");
         free(rgb);
         return EXIT_FAILURE;
     }
 
     /* write the PNG image from [0,1] and free the memory space */
-    /**
-     * @todo correct io_png API
-     */
+    /** @todo correct io_png API */
     for (i = 0; i < 3 * size; i++)
         rgb[i] *= 255.;
     io_png_write_f32(argv[5], rgb, nx, ny, 3);

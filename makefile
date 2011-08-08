@@ -6,7 +6,7 @@
 # offered as-is, without any warranty.
 
 # source code, C language
-CSRC	= io_png.c balance_lib.c colorspace_lib.c balance.c
+CSRC	= io_png.c balance_lib.c colorspace_lib.c colorbalance_lib.c balance.c
 # source code, all languages (only C here)
 SRC	= $(CSRC)
 # object files (partial compilation)
@@ -29,7 +29,7 @@ default: $(BIN)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 # final link
-balance	: io_png.o balance_lib.o colorspace_lib.o balance.o
+balance	: io_png.o balance_lib.o colorspace_lib.o colorbalance_lib.o balance.o
 	$(CC) $^ $(LDFLAGS) -o $@
 
 # cleanup
