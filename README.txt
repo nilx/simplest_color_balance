@@ -14,19 +14,26 @@ This source code provides an implementation of the "simplest color
 balance" image normalization, as described in IPOL
     http://www.ipol.im/pub/algo/lmps_simplest_color_balance/
 
-The implementation is realized with two programs for two variants of
-the algorithm. These programs read a PNG image, then scale the pixel
-values by an affine function such that a user-defined number of pixels
-are scaled over the color space limits [0..255]. These pixels are
-replaced by the 0 or 255 value, and these values are written as a PNG
-image.
+This algorithm is implemented in the program 'balance'. This program
+reads a PNG image, then scale the pixel values by an affine function
+such that a user-defined number of pixels are scaled over the color
+space limits [0..255]. These pixels are replaced by the 0 or 255
+value, and these values are written as a PNG image.
 
-The 'balance_rgb' program operates independently on each of the red,
-green and blue channels. The 'balance_hsl' program operates on the L
-dimension (lightness) of the image. 
+Five different modes are available for color images:
+* RGB: the R, G and B channels are balanced independently;
+* HSL: the balance is performed in the HSL color space cylinder, on
+    the L ligntness axis;
+* HSV: the balance is performed in the HSV color space cylinder, on
+    the V value axis;
+* HSI: the balance is performed in the HSI color space cube, on the I
+    intensity axis, with clipping on the RGB channels;
+* HSI bounded: the balance is performed in the HSI color space cube,
+    on the I intensity axis, then the RGB channels are scaled
+    proportionally to the I balance, with clipping.
 
-Only 8bit RGB PNG images are handled. Other PNG files are implicitly
-converted to 8bit color RGB.
+Only 8bit RGB PNG images files are handled. Other PNG files are
+implicitly converted to 8bit color RGB.
 
 # REQUIREMENTS
 
@@ -41,23 +48,22 @@ http://www.libpng.org/pub/png/libpng.html
 
 Simply use the provided makefile, with the command `make`.
 Alternatively, you can manually compile
-    cc io_png.c balance_lib.c balance_rgb.c \
-        -lpng -o balance_rgb
-    cc io_png.c balance_lib.c colorspace_lib.c balance_hsl.c \
-        -lpng -o balance_hsl
+    cc io_png.c balance_lib.c colorbalance_lib.c colorspace_lib.c \
+        balance.c -lpng -o balance
 
 # USAGE
 
-'balance_rgb' and 'balancd_hsl' takes 4 parameters:
-    `balance_xxx Sb Sw in.png out.png`
+'balance' takes 5 parameters:
+    `balance mode Sb Sw in.png out.png`
 
+* `mode`    : the algorithm variant, one of 'rgb', 'hsl', 'hsv', 'hsi'
+              and 'hsi_bounded'
 * `Sb`      : percentage of pixels saturated to black in the output image
 * `Sw`      : percentage of pixels saturated to white in the output image
               Sb and Sw must be in [0..100[ and Sb+Sw < 100
 * `in.png`  : input image
 * `out.png` : output image
               both images are PNG; you can use "-" for standard input/output
-
 
 # CREDITS
 
