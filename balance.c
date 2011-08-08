@@ -110,6 +110,7 @@ int main(int argc, char *const *argv)
          * the L axis, saturating a percentage of the pixels at the
          * beginning and end of the axis.
          */
+	/** @todo compute L from RGB, then compute RGB from RGB and new L */
         /* convert to HSL */
         float *hsl;
         hsl = (float *) malloc(3 * size * sizeof(float));
@@ -129,6 +130,7 @@ int main(int argc, char *const *argv)
          * the V axis, saturating a percentage of the pixels at the
          * beginning and end of the axis.
          */
+	/** @todo compute V from RGB, then compute RGB from RGB and new V */
         /* convert to HSV */
         float *hsv;
         hsv = (float *) malloc(3 * size * sizeof(float));
@@ -151,6 +153,7 @@ int main(int argc, char *const *argv)
          * RGB model, if the result is out of the RGB cube it will be
          * clipped.
          */
+	/** @todo compute I from RGB, then compute RGB from RGB and new I */
         /* convert to HSI */
         float *hsi;
         size_t i;

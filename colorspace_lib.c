@@ -29,9 +29,9 @@
  * @author Pascal Getreuer <pascal.getreuer@cmla.ens-cachan.fr>
  * @author Nicolas Limare <nicolas.limare@cmla.ens-cachan.fr>
  *
- * @todo convert in-loop, no function call
+ * @todo inline conversion functions
  * @todo probably lots of room for speed improvements
- * @todo only compute L from RGB, then compute RGB from RGB and new L
+ * @todo use H in [0..2*PI]
  */
 
 #include <stdlib.h>

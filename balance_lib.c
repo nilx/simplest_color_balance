@@ -236,8 +236,6 @@ static unsigned char *rescale_u8(unsigned char *data, size_t size,
         unsigned char norm[UCHAR_MAX + 1];
         for (i = 0; i < min; i++)
             norm[i] = 0;
-        for (i = max; i < UCHAR_MAX + 1; i++)
-            norm[i] = UCHAR_MAX;
         for (i = min; i < max; i++)
             /*
              * we can't store and reuse UCHAR_MAX / (max - min) because
@@ -246,6 +244,8 @@ static unsigned char *rescale_u8(unsigned char *data, size_t size,
              */
             norm[i] = (unsigned char) ((i - min) * UCHAR_MAX
                                        / (double) (max - min) + .5);
+        for (i = max; i < UCHAR_MAX + 1; i++)
+            norm[i] = UCHAR_MAX;
         /* use the normalization table to transform the data */
         for (i = 0; i < size; i++)
             data[i] = norm[(size_t) data[i]];
@@ -278,6 +278,7 @@ static float *rescale_f32(float *data, size_t size, float min, float max)
     }
     else {
         for (i = 0; i < size; i++) {
+	    /** @todo try using boolean arithmetics */
             if (min > data[i])
                 data[i] = 0;
             else if (max < data[i])
