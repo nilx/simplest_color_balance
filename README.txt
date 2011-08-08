@@ -28,9 +28,8 @@ Five different modes are available for color images:
     the V value axis;
 * HSI: the balance is performed in the HSI color space cube, on the I
     intensity axis, with clipping on the RGB channels;
-* HSI bounded: the balance is performed in the HSI color space cube,
-    on the I intensity axis, then the RGB channels are scaled
-    proportionally to the I balance, with clipping.
+* IRGB bounded: the balance is performed on the I intensity axis, then
+    the RGB channels are scaled proportionally, with clipping.
 
 Only 8bit RGB PNG images files are handled. Other PNG files are
 implicitly converted to 8bit color RGB.
@@ -57,7 +56,7 @@ Alternatively, you can manually compile
     `balance mode Sb Sw in.png out.png`
 
 * `mode`    : the algorithm variant, one of 'rgb', 'hsl', 'hsv', 'hsi'
-              and 'hsi_bounded'
+              and 'irgb_bounded'
 * `Sb`      : percentage of pixels saturated to black in the output image
 * `Sw`      : percentage of pixels saturated to white in the output image
               Sb and Sw must be in [0..100[ and Sb+Sw < 100

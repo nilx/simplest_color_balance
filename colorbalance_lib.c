@@ -49,7 +49,7 @@ float *colorbalance_rgb_f32(float *rgb, size_t size,
 }
 
 /**
- * @brief simplest color balance in the HSL color space, L channel
+ * @brief simplest color balance in the HSL color space, L axis
  *
  * The input image is normalized by affine transformation on the L
  * axis, saturating a percentage of the pixels at the beginning and
@@ -73,7 +73,7 @@ float *colorbalance_hsl_f32(float *rgb, size_t size,
 }
 
 /**
- * @brief simplest color balance in the HSV color space, V channel
+ * @brief simplest color balance in the HSV color space, V axis
  *
  * The input image is normalized by affine transformation on the V
  * axis, saturating a percentage of the pixels at the beginning and
@@ -97,7 +97,7 @@ float *colorbalance_hsv_f32(float *rgb, size_t size,
 }
 
 /**
- * @brief simplest color balance in the HSI color space, I channel
+ * @brief simplest color balance in the HSI color space, I axis
  *
  * The input image is normalized by affine transformation on the I
  * axis, saturating a percentage of the pixels at the beginning and
@@ -134,7 +134,8 @@ float *colorbalance_hsi_f32(float *rgb, size_t size,
 }
 
 /**
- * @brief simplest color balance based on the I channel, bounded
+ * @brief simplest color balance based on the I axis applied to the
+ * RGB channels, bounded
  *
  * The input image is normalized by affine transformation on the I
  * axis, saturating a percentage of the pixels at the beginning and
@@ -142,8 +143,8 @@ float *colorbalance_hsi_f32(float *rgb, size_t size,
  * G and B channels. The HSI cube is not stable by this operation, so
  * some clipping will happen when the result is out of the RGB cube.
  */
-float *colorbalance_hsi_bounded_f32(float *rgb, size_t size,
-                                    size_t nb_min, size_t nb_max)
+float *colorbalance_irgb_bounded_f32(float *rgb, size_t size,
+                                     size_t nb_min, size_t nb_max)
 {
     float *irgb, *inorm;        /* intensity scale */
     double s;
