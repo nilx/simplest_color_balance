@@ -11,8 +11,7 @@ _test_memcheck() {
 _log_init
 
 echo "* check memory leaks"
-_log make distclean
-_log make
+_log make -B
 TEMPFILE=$(tempfile)
 for MODE in rgb hsl hsv hsi irgb_bounded; do
     _log _test_memcheck ./balance $MODE 0 0 data/colors_small.png $TEMPFILE
