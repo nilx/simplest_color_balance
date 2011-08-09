@@ -167,7 +167,11 @@ static void quantiles_u8(const unsigned char *data, size_t size,
  */
 static int cmp_f32(const void *a, const void *b)
 {
-    return (int) (*(const int *) a - *(const int *) b);
+    if (*(const int *) a > *(const int *) b)
+        return 1;
+    if (*(const int *) a < *(const int *) b)
+        return -1;
+    return 0;
 }
 
 /**
