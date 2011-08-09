@@ -70,7 +70,7 @@
  * This routine transforms from sRGB to the double hexcone HSL color
  * space. The sRGB values are assumed to be between 0 and 1.  The
  * outputs are
- *   H = hexagonal hue angle                (0 <= H < 6),
+ *   H = hexagonal hue angle                (0 <= H < 1),
  *   S = { C/(2L)     if L <= 1/2           (0 <= S <= 1),
  *       { C/(2 - 2L) if L >  1/2
  *   L = (max(R',G',B') + min(R',G',B'))/2  (0 <= L <= 1),

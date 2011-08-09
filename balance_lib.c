@@ -230,11 +230,9 @@ static unsigned char *rescale_u8(unsigned char *data, size_t size,
 {
     size_t i;
 
-    if (max <= min) {
-        unsigned char mid = UCHAR_MAX / 2;
+    if (max <= min)
         for (i = 0; i < size; i++)
-            data[i] = mid;
-    }
+            data[i] = UCHAR_MAX / 2;
     else {
         /* build a normalization table */
         unsigned char norm[UCHAR_MAX + 1];
@@ -275,22 +273,13 @@ static float *rescale_f32(float *data, size_t size, float min, float max)
 {
     size_t i;
 
-    if (max <= min) {
-        float mid = .5;
+    if (max <= min)
         for (i = 0; i < size; i++)
-            data[i] = mid;
-    }
-    else {
-        for (i = 0; i < size; i++) {
-            /** @todo try using boolean arithmetics */
-            if (min > data[i])
-                data[i] = 0;
-            else if (max < data[i])
-                data[i] = 1.;
-            else
-                data[i] = (data[i] - min) / (float) (max - min);
-        }
-    }
+            data[i] = .5;
+    else
+        for (i = 0; i < size; i++)
+            data[i] = (min > data[i] ? 0. :
+                       (max < data[i] ? 1. : (data[i] - min) / (max - min)));
 
     return data;
 }

@@ -53,6 +53,7 @@ int main(int argc, char *const *argv)
         fprintf(stderr, "usage : %s mode Sb Sw in.png out.png\n", argv[0]);
         fprintf(stderr, "        mode is rgb, hsl, hsv, hsi,\n");
         fprintf(stderr, "          irgb_bounded or irgb_ajusted\n");
+        fprintf(stderr, "          (see README.txt for details)\n");
         fprintf(stderr, "        Sb and Sw are percentage of pixels\n");
         fprintf(stderr, "          saturated to black and white,\n");
         fprintf(stderr, "          in [0-100[\n");

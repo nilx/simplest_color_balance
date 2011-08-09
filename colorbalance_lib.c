@@ -22,6 +22,8 @@
  * @author Nicolas Limare <nicolas.limare@cmla.ens-cachan.fr>
  * @author Jose-Luis Lisani <joseluis.lisani@uib.es>
  * @author Catalina Sbert <catalina.sbert@uib.es>
+ *
+ * @todo check precision loss, maybe use double precison values
  */
 
 #include <stdlib.h>
@@ -127,13 +129,8 @@ float *colorbalance_hsi_f32(float *rgb, size_t size,
     hsi2rgb(hsi, rgb, size);
     free(hsi);
     /* clip RGB values to [0, 1] */
-    for (i = 0; i < 3 * size; i++) {
-        /** @todo use boolean arithmetics, avoid if.. branching */
-        if (rgb[i] > 1.)
-            rgb[i] = 1.;
-        if (rgb[i] < 0.)
-            rgb[i] = 0.;
-    }
+    for (i = 0; i < 3 * size; i++)
+        rgb[i] = (rgb[i] > 1. ? 1. : (rgb[i] < 0. ? 0. : rgb[i]));
     return rgb;
 }
 
@@ -153,10 +150,10 @@ float *colorbalance_irgb_bounded_f32(float *rgb, size_t size,
     float *irgb, *inorm;        /* intensity scale */
     double s;
     size_t i;
-    /** @todo work with I=R+G+B instead of (R+G+B)/3 to save a division */
+    /** @todo compute I=R+G+B instead of (R+G+B)/3 to save a division */
     irgb = (float *) malloc(size * sizeof(float));
     for (i = 0; i < size; i++)
-        irgb[i] = (rgb[i] + rgb[i + size] + rgb[i + 2 * size]) / 3;
+        irgb[i] = (rgb[i] + rgb[i + size] + rgb[i + 2 * size]) / 3.;
     /* copy and normalize I */
     inorm = (float *) malloc(size * sizeof(float));
     memcpy(inorm, irgb, size * sizeof(float));
@@ -191,8 +188,6 @@ float *colorbalance_irgb_bounded_f32(float *rgb, size_t size,
  * IEEE754 floats can be compared as integers. Not *converted* to
  * integers, but *read* as integers while maintaining an order.
  * cf. http://www.cygnus-software.com/papers/comparingfloats/Comparing%20floating%20point%20numbers.htm#_Toc135149455
- *
- * @todo factor out with MIN, MAX, MAX3 in a shared include file
  */
 static int cmp_f32(const void *a, const void *b)
 {
@@ -239,7 +234,6 @@ float *colorbalance_irgb_ajusted_f32(float *rgb, size_t size,
     maxrgb = (float *) malloc(size * sizeof(float));
     for (i = 0; i < size; i++)
         maxrgb[i] = MAX3(rgb[i], rgb[i + size], rgb[i + 2 * size]);
-    /** @todo use double? */
     for (i = 0; i < size; i++)
         tmp[i] = irgb[i] / (maxrgb[i] * (irgb[i] - imin));
     /*
