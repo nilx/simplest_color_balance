@@ -30,6 +30,11 @@ Five different modes are available for color images:
     intensity axis, with clipping on the RGB channels;
 * IRGB bounded: the balance is performed on the I intensity axis, then
     the RGB channels are scaled proportionally, with clipping.
+* IRGB ajusted: the balance is performed on the I intensity axis, then
+    the RGB channels are scaled proportionally; the I balance
+    parameters are ajusted to saturate the expected number of pixels
+    on one color channel or more; the RGB scaling is also ajused to
+    maintain the R/G/B ratio if one channel is saturated.
 
 Only 8bit RGB PNG images files are handled. Other PNG files are
 implicitly converted to 8bit color RGB.
@@ -37,8 +42,8 @@ implicitly converted to 8bit color RGB.
 # REQUIREMENTS
 
 The code is written in ANSI C, and should compile on any system with
-an ANSI C compiler. It has been tested on Liniu with the gcc, g++,
-icc, pathcc, suncc, tcc and nwcc compilers.
+an ANSI C compiler. It has been tested on Linux 64bits with various
+compilers.
 
 The libpng header and the libpng and zlib libraries are required
 on the system for compilation and execution. See
@@ -46,7 +51,9 @@ http://www.libpng.org/pub/png/libpng.html
 
 # COMPILATION
 
-Simply use the provided makefile, with the command `make`.
+Simply use the provided makefile, with the command `make`. Some of the
+default compiler flags in the makefile are specific to the gcc
+compiler family and can be avoided by `make CFLAGS=`.
 Alternatively, you can manually compile
     cc io_png.c balance_lib.c colorbalance_lib.c colorspace_lib.c \
         balance.c -lpng -o balance
@@ -56,8 +63,8 @@ Alternatively, you can manually compile
 'balance' takes 5 parameters:
     `balance mode Sb Sw in.png out.png`
 
-* `mode`    : the algorithm variant, one of 'rgb', 'hsl', 'hsv', 'hsi'
-              and 'irgb_bounded'
+* `mode`    : the algorithm variant, one of 'rgb', 'hsl', 'hsv', 'hsi',
+              'irgb_bounded' or 'irgb_ajusted'
 * `Sb`      : percentage of pixels saturated to black in the output image
 * `Sw`      : percentage of pixels saturated to white in the output image
               Sb and Sw must be in [0..100[ and Sb+Sw < 100
