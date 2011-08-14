@@ -23,17 +23,17 @@ value, and these values are written as a PNG image.
 Five different modes are available for color images:
 * RGB: the R, G and B channels are balanced independently;
 * HSL: the balance is performed in the HSL color space cylinder, on
-    the L ligntness axis;
+    the L lightness axis;
 * HSV: the balance is performed in the HSV color space cylinder, on
     the V value axis;
 * HSI: the balance is performed in the HSI color space cube, on the I
     intensity axis, with clipping on the RGB channels;
 * IRGB bounded: the balance is performed on the I intensity axis, then
     the RGB channels are scaled proportionally, with clipping.
-* IRGB ajusted: the balance is performed on the I intensity axis, then
+* IRGB adjusted: the balance is performed on the I intensity axis, then
     the RGB channels are scaled proportionally; the I balance
-    parameters are ajusted to saturate the expected number of pixels
-    on one color channel or more; the RGB scaling is also ajused to
+    parameters are adjusted to saturate the expected number of pixels
+    on one color channel or more; the RGB scaling is also accused to
     maintain the R/G/B ratio if one channel is saturated.
 
 Only 8bit RGB PNG images files are handled. Other PNG files are
@@ -64,7 +64,7 @@ Alternatively, you can manually compile
     `balance mode Sb Sw in.png out.png`
 
 * `mode`    : the algorithm variant, one of 'rgb', 'hsl', 'hsv', 'hsi',
-              'irgb_bounded' or 'irgb_ajusted'
+              'irgb_bounded' or 'irgb_adjusted'
 * `Sb`      : percentage of pixels saturated to black in the output image
 * `Sw`      : percentage of pixels saturated to white in the output image
               Sb and Sw must be in [0..100[ and Sb+Sw < 100

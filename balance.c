@@ -52,7 +52,7 @@ int main(int argc, char *const *argv)
     if (6 != argc) {
         fprintf(stderr, "usage : %s mode Sb Sw in.png out.png\n", argv[0]);
         fprintf(stderr, "        mode is rgb, hsl, hsv, hsi,\n");
-        fprintf(stderr, "          irgb_bounded or irgb_ajusted\n");
+        fprintf(stderr, "          irgb_bounded or irgb_adjusted\n");
         fprintf(stderr, "          (see README.txt for details)\n");
         fprintf(stderr, "        Sb and Sw are percentage of pixels\n");
         fprintf(stderr, "          saturated to black and white,\n");
@@ -96,11 +96,11 @@ int main(int argc, char *const *argv)
         (void) colorbalance_hsi_f32(rgb, size, nb_min, nb_max);
     else if (0 == strcmp(argv[1], "irgb_bounded"))
         (void) colorbalance_irgb_bounded_f32(rgb, size, nb_min, nb_max);
-    else if (0 == strcmp(argv[1], "irgb_ajusted"))
-        (void) colorbalance_irgb_ajusted_f32(rgb, size, nb_min, nb_max);
+    else if (0 == strcmp(argv[1], "irgb_adjusted"))
+        (void) colorbalance_irgb_adjusted_f32(rgb, size, nb_min, nb_max);
     else {
         fprintf(stderr, "mode must be rgb, hsl, hsv, hsi, "
-                "irgb_bounded or irgb_ajusted\n");
+                "irgb_bounded or irgb_adjusted\n");
         free(rgb);
         return EXIT_FAILURE;
     }

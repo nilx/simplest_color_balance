@@ -23,7 +23,7 @@
  * @author Jose-Luis Lisani <joseluis.lisani@uib.es>
  * @author Catalina Sbert <catalina.sbert@uib.es>
  *
- * @todo check precision loss, maybe use double precison values
+ * @todo check precision loss, maybe use double precision values
  */
 
 #include <stdlib.h>
@@ -108,8 +108,8 @@ float *colorbalance_hsv_f32(float *rgb, size_t size,
  * The input image is normalized by affine transformation on the I
  * axis, saturating a percentage of the pixels at the beginning and
  * end of the axis. The HSI cube is not stable by this operation, so
- * when the result is oput of the RGB cube, a clipping will be
- * performed independantly on each RGB channel (thus with somne color
+ * when the result is out of the RGB cube, a clipping will be
+ * performed independently on each RGB channel (thus with some color
  * distortion).
  *
  * @todo add another mode: clip before hsi2rgb
@@ -200,16 +200,16 @@ static int cmp_f32(const void *a, const void *b)
 
 /**
  * @brief simplest color balance based on the I axis applied to the
- * RGB channels, ajusted
+ * RGB channels, adjusted
  *
  * The input image is normalized by affine transformation on the I
  * axis, saturating a percentage of the pixels at the beginning and
  * end of the axis. This transformation is linearly applied to the R,
  * G and B channels. The HSI cube is not stable by this operation, so
- * to avoid clipping the linear scaling factors are ajusted to
+ * to avoid clipping the linear scaling factors are adjusted to
  * maintain the R/G/B ratios.
  */
-float *colorbalance_irgb_ajusted_f32(float *rgb, size_t size,
+float *colorbalance_irgb_adjusted_f32(float *rgb, size_t size,
                                      size_t nb_min, size_t nb_max)
 {
     float *irgb, *maxrgb, *tmp;
@@ -255,7 +255,7 @@ float *colorbalance_irgb_ajusted_f32(float *rgb, size_t size,
         /* if I = 0, it will be mapped to a value <= 0 */
         s = (0. == irgb[i] ? 0. : (alpha * irgb[i] + beta) / irgb[i]);
         /*
-         * the scaling factor is ajusted
+         * the scaling factor is adjusted
          * such that R, G and B keep under 1 and are not truncated
          */
         s = MAX(s, 0.);

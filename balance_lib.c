@@ -135,7 +135,7 @@ static void quantiles_u8(const unsigned char *data, size_t size,
         i = 0;
         while (i < h_size && histo[i] <= nb_min)
             i++;
-        /* the corresponding histogram value is the current cell indice */
+        /* the corresponding histogram value is the current cell position */
         *ptr_min = (unsigned char) i;
     }
 
@@ -149,7 +149,7 @@ static void quantiles_u8(const unsigned char *data, size_t size,
         /*
          * if we are not at the end of the histogram,
          * get to the next cell,
-         * ie the last (backward) value > size - nb_max
+         * the last (backward) value > size - nb_max
          */
         if (i < h_size - 1)
             i++;
@@ -289,7 +289,7 @@ static float *rescale_f32(float *data, size_t size, float min, float max)
  *
  * This function operates in-place. It computes the minimum and
  * maximum values of the data, and rescales the data to
- * [0-UCHAR_MAX], with optionnally flattening some extremal pixels.
+ * [0-UCHAR_MAX], with optionally flattening some extremal pixels.
  *
  * @param data input/output array
  * @param size array size
@@ -331,7 +331,7 @@ unsigned char *balance_u8(unsigned char *data, size_t size,
  *
  * This function operates in-place. It computes the minimum and
  * maximum values of the data, and rescales the data to
- * [0-1], with optionnally flattening some extremal pixels.
+ * [0-1], with optionally flattening some extremal pixels.
  *
  * @param data input/output array
  * @param size array size

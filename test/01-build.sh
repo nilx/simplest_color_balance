@@ -20,7 +20,7 @@ _test_run() {
     ./balance irgb_bounded 10 20 data/colors.png $TEMPFILE
     test "1e5627064a817a78ed45397a04ea2904  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
-    ./balance irgb_ajusted 10 20 data/colors.png $TEMPFILE
+    ./balance irgb_adjusted 10 20 data/colors.png $TEMPFILE
     test "47f13d6e15e50d29e812d623d2ae1316  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     rm -f $TEMPFILE

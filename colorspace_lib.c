@@ -1,6 +1,6 @@
 /*
  * Copyright 2005-2010, Pascal Getreuer <pascal.getreuer@cmla.ens-cachan.fr>
- * Copyright 2011, Niclas Limarer <nicolas.limare@cmla.ens-cachan.fr>
+ * Copyright 2011, Niclas Limare <nicolas.limare@cmla.ens-cachan.fr>
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@
  * @brief color space conversion routines
 
  * The conversion code is derived from Pascal Getreuer's colorspace
- * conversion library; he explicitely allowed the relicensing of the
+ * conversion library; he explicitly allowed the re-licensing of the
  * RGB/HSL/HSV/HSI functions from BSD to GPL.
  * http://www.math.ucla.edu/~getreuer/colorspace.html
  *
@@ -183,7 +183,7 @@ static void _hsl2rgb(float h, float s, float l, float *r, float *g, float *b)
  *   S = C/V                   (0 <= S <= 1),
  *   V = max(R',G',B')         (0 <= V <= 1),
  * where C = max(R',G',B') - min(R',G',B').  The inverse color
- * transformation is given by _sv2rgb.
+ * transformation is given by _hsv2rgb.
  *
  * @param r, g, b the input sRGB values scaled in [0,1]
  * @param h, s, v pointers to hold the HSV result
@@ -316,7 +316,7 @@ static void _rgb2hsi(float r, float g, float b, float *h, float *s, float *i)
 }
 
 /**
- * @brief Convert a Hue-Saturation-Intesity (HSI) color to sRGB
+ * @brief Convert a Hue-Saturation-Intensity (HSI) color to sRGB
  *
  * @param R, G, B pointers to hold the result
  * @param H, S, I the input HSI values
