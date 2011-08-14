@@ -6,22 +6,22 @@
 _test_run() {
     TEMPFILE=$(tempfile)
     ./balance rgb 10 20 data/colors.png $TEMPFILE
-    test "dac4d6a6add6aabac2e238f8b1f4713d  $TEMPFILE" \
+    test "d704c1bcad2fe1d91ea1ba1f05c39efd  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     ./balance hsl 10 20 data/colors.png $TEMPFILE
-    test "d1bad04a9942848383da68390f25ea56  $TEMPFILE" \
+    test "2d3389e3e3b6638c3c43912a58cc2ac4  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     ./balance hsv 10 20 data/colors.png $TEMPFILE
-    test "b461f7d6dbdd88d152ac4ba2003c7c34  $TEMPFILE" \
+    test "3405cb7190fa14ba2d13d547e978c7ee  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     ./balance hsi 10 20 data/colors.png $TEMPFILE
-    test "693b897ac144e7cd8cc569cdf454e053  $TEMPFILE" \
+    test "830c33409920e0945317f3781f9833f0  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     ./balance irgb_bounded 10 20 data/colors.png $TEMPFILE
-    test "2088a1faf7af5d046545148b592d52bc  $TEMPFILE" \
+    test "1e5627064a817a78ed45397a04ea2904  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     ./balance irgb_ajusted 10 20 data/colors.png $TEMPFILE
-    test "e29730b0ee10da1921dfca7002dbb68e  $TEMPFILE" \
+    test "47f13d6e15e50d29e812d623d2ae1316  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     rm -f $TEMPFILE
 }
