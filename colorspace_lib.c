@@ -306,7 +306,7 @@ static void _rgb2hsi(float r, float g, float b, float *h, float *s, float *i)
         *s = 1 - MIN3(r, g, b) / *i;
         *h = atan2(beta, alpha) * (3 / M_PI);
         if (*h < 0)
-            *h += 360;
+            *h += 6;
     }
     else {
         *h = 0;
