@@ -112,7 +112,7 @@ float *colorbalance_hsv_f32(float *rgb, size_t size,
  * performed independently on each RGB channel (thus with some color
  * distortion).
  *
- * @todo add another mode: clip before hsi2rgb
+ * @todo add another mode: clip s before hsi2rgb
  * @todo compute I from RGB, then compute new RGB from RGB and new I
  */
 float *colorbalance_hsi_f32(float *rgb, size_t size,
@@ -210,7 +210,7 @@ static int cmp_f32(const void *a, const void *b)
  * maintain the R/G/B ratios.
  */
 float *colorbalance_irgb_adjusted_f32(float *rgb, size_t size,
-                                     size_t nb_min, size_t nb_max)
+                                      size_t nb_min, size_t nb_max)
 {
     float *irgb, *maxrgb, *tmp;
     double imin, alpha, beta, s;
