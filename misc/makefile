@@ -98,6 +98,10 @@ RGB_64colors.%.00.xx.m4v	: RGB_64colors_lbl/%
 	for I in $$(seq -w 0 ${IMAX}); do \
 		cp -l $</RGB_64colors.$*.00.$$I.tga tmp; \
 	done
+	for I in $$(seq -w 0 12); do \
+		cp -l $</RGB_64colors.$*.00.00.tga tmp/RGB_64colors.$*.00.00.pfx$$I.tga; \
+		cp -l $</RGB_64colors.$*.00.${IMAX}.tga tmp/RGB_64colors.$*.00.${IMAX}.sfx$$I.tga; \
+	done
 	mencoder -ovc lavc -lavcopts vcodec=mpeg4 -mf type=tga:fps=6 -nosound -o $@ mf://tmp/\*
 
 RGB_64colors.%.xx.00.m4v	: RGB_64colors_lbl/%
@@ -106,6 +110,10 @@ RGB_64colors.%.xx.00.m4v	: RGB_64colors_lbl/%
 	for I in $$(seq -w 0 ${IMAX}); do \
 		cp -l $</RGB_64colors.$*.$$I.00.tga tmp; \
 	done
+	for I in $$(seq -w 0 12); do \
+		cp -l $</RGB_64colors.$*.00.00.tga tmp/RGB_64colors.$*.00.00.pfx$$I.tga; \
+		cp -l $</RGB_64colors.$*.${IMAX}.00.tga tmp/RGB_64colors.$*.${IMAX}.00.sfx$$I.tga; \
+	done
 	mencoder -ovc lavc -lavcopts vcodec=mpeg4 -mf type=tga:fps=6 -nosound -o $@ mf://tmp/\*
 
 RGB_64colors.%.xx.xx.m4v	: RGB_64colors_lbl/%
@@ -113,6 +121,10 @@ RGB_64colors.%.xx.xx.m4v	: RGB_64colors_lbl/%
 	mkdir -p tmp
 	for I in $$(seq -w 0 ${IMAX2}); do \
 		cp -l $</RGB_64colors.$*.$$I.$$I.tga tmp; \
+	done
+	for I in $$(seq -w 0 12); do \
+		cp -l $</RGB_64colors.$*.00.00.tga tmp/RGB_64colors.$*.00.00.pfx$$I.tga; \
+		cp -l $</RGB_64colors.$*.${IMAX2}.${IMAX2}.tga tmp/RGB_64colors.$*.${IMAX2}.${IMAX2}.sfx$$I.tga; \
 	done
 	mencoder -ovc lavc -lavcopts vcodec=mpeg4 -mf type=tga:fps=6 -nosound -o $@ mf://tmp/\*
 
