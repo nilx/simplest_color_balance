@@ -107,13 +107,12 @@ float *colorbalance_hsv_f32(float *rgb, size_t size,
  *
  * The input image is normalized by affine transformation on the I
  * axis, saturating a percentage of the pixels at the beginning and
- * end of the axis. The HSI cube is not stable by this operation, so
+ * end of the axis. The HSI cone is not stable by this operation, so
  * when the result is out of the RGB cube, a clipping will be
  * performed independently on each RGB channel (thus with some color
  * distortion).
  *
- * @todo add another mode: clip s before hsi2rgb
- * @todo compute I from RGB, then compute new RGB from RGB and new I
+ * @todo merge with irgb_bounded, these 2 fonctions are identical
  */
 float *colorbalance_hsi_f32(float *rgb, size_t size,
                             size_t nb_min, size_t nb_max)
@@ -128,9 +127,9 @@ float *colorbalance_hsi_f32(float *rgb, size_t size,
     /* convert back to RGB */
     hsi2rgb(hsi, rgb, size);
     free(hsi);
-    /* clip RGB values to [0, 1] */
+    /* clip RGB values to [0, 1]; overflow can only happen on 1 */
     for (i = 0; i < 3 * size; i++)
-        rgb[i] = (rgb[i] > 1. ? 1. : (rgb[i] < 0. ? 0. : rgb[i]));
+        rgb[i] = (rgb[i] > 1. ? 1. : rgb[i]);
     return rgb;
 }
 
@@ -141,7 +140,7 @@ float *colorbalance_hsi_f32(float *rgb, size_t size,
  * The input image is normalized by affine transformation on the I
  * axis, saturating a percentage of the pixels at the beginning and
  * end of the axis. This transformation is linearly applied to the R,
- * G and B channels. The HSI cube is not stable by this operation, so
+ * G and B channels. The RGB cube is not stable by this operation, so
  * some clipping will happen when the result is out of the RGB cube.
  */
 float *colorbalance_irgb_bounded_f32(float *rgb, size_t size,
@@ -168,6 +167,9 @@ float *colorbalance_irgb_bounded_f32(float *rgb, size_t size,
         rgb[i + size] *= s;
         rgb[i + 2 * size] *= s;
     }
+    /* clip RGB values to [0, 1]; overflow can only happen on 1 */
+    for (i = 0; i < 3 * size; i++)
+        rgb[i] = (rgb[i] > 1. ? 1. : rgb[i]);
     free(irgb);
     free(inorm);
     return rgb;
@@ -205,7 +207,7 @@ static int cmp_f32(const void *a, const void *b)
  * The input image is normalized by affine transformation on the I
  * axis, saturating a percentage of the pixels at the beginning and
  * end of the axis. This transformation is linearly applied to the R,
- * G and B channels. The HSI cube is not stable by this operation, so
+ * G and B channels. The RGB cube is not stable by this operation, so
  * to avoid clipping the linear scaling factors are adjusted to
  * maintain the R/G/B ratios.
  */
