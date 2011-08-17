@@ -186,17 +186,15 @@ float *colorbalance_irgb_bounded_f32(float *rgb, size_t size,
 #define MAX3(A,B,C) (((A) >= (B)) ? MAX(A,C) : MAX(B,C))
 
 /**
- * @brief float comparison
+ * @brief double comparison
  *
- * IEEE754 floats can be compared as integers. Not *converted* to
- * integers, but *read* as integers while maintaining an order.
- * cf. http://www.cygnus-software.com/papers/comparingfloats/Comparing%20floating%20point%20numbers.htm#_Toc135149455
+ * @todo use integer ops, cf cmp_f32
  */
-static int cmp_f32(const void *a, const void *b)
+static int cmp_f64(const void *a, const void *b)
 {
-    if (*(const int *) a > *(const int *) b)
+    if (*(const double *) a > *(const double *) b)
         return 1;
-    if (*(const int *) a < *(const int *) b)
+    if (*(const double *) a < *(const double *) b)
         return -1;
     return 0;
 }
@@ -217,22 +215,23 @@ static int cmp_f32(const void *a, const void *b)
 float *colorbalance_irgb_adjusted_f32(float *rgb, size_t size,
                                       size_t nb_min, size_t nb_max)
 {
-    float *irgb, *maxrgb, *tmp;
+    float *maxrgb;
+    double *irgb, *tmp;
     double imin, alpha, beta, s;
     size_t i;
 
     /* compute I=(R+G+B)/3 */
     /** @todo work with I=R+G+B instead of (R+G+B)/3 to save a division */
-    irgb = (float *) malloc(size * sizeof(float));
-    tmp = (float *) malloc(size * sizeof(float));
+    irgb = (double *) malloc(size * sizeof(double));
+    tmp = (double *) malloc(size * sizeof(double));
     for (i = 0; i < size; i++)
         irgb[i] = (rgb[i] + rgb[i + size] + rgb[i + 2 * size]) / 3;
     /*
      * sort I and get Imin, the nb_min-th I value
      * to be mapped to 0 in order to saturate nb_min pixels
      */
-    memcpy(tmp, irgb, size * sizeof(float));
-    qsort(tmp, size, sizeof(float), &cmp_f32);
+    memcpy(tmp, irgb, size * sizeof(double));
+    qsort(tmp, size, sizeof(double), &cmp_f64);
     imin = tmp[nb_min];
 
     /* compute  I / (max(R, G, B) * (I - Imin)) */
@@ -248,7 +247,7 @@ float *colorbalance_irgb_adjusted_f32(float *rgb, size_t size,
      * sort and get alpha, the nb_max-th positive value
      * to be used as the scaling factor to saturate nb_max pixels
      */
-    qsort(tmp, size, sizeof(float), &cmp_f32);
+    qsort(tmp, size, sizeof(double), &cmp_f64);
     i = 0;
     while ((i < size) && (tmp[i] <= 0))
         i++;
