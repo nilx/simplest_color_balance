@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <float.h>
 
 #include "balance_lib.h"
 #include "colorspace_lib.h"
@@ -210,6 +211,8 @@ static int cmp_f32(const void *a, const void *b)
  * G and B channels. The RGB cube is not stable by this operation, so
  * to avoid clipping the linear scaling factors are adjusted to
  * maintain the R/G/B ratios.
+ *
+ * @todo explain I / (max(R, G, B) * (I - Imin))
  */
 float *colorbalance_irgb_adjusted_f32(float *rgb, size_t size,
                                       size_t nb_min, size_t nb_max)
@@ -232,12 +235,15 @@ float *colorbalance_irgb_adjusted_f32(float *rgb, size_t size,
     qsort(tmp, size, sizeof(float), &cmp_f32);
     imin = tmp[nb_min];
 
-    /* compute  I / (max(T, G, B) * (I - Imin)) */
+    /* compute  I / (max(R, G, B) * (I - Imin)) */
     maxrgb = (float *) malloc(size * sizeof(float));
     for (i = 0; i < size; i++)
         maxrgb[i] = MAX3(rgb[i], rgb[i + size], rgb[i + 2 * size]);
     for (i = 0; i < size; i++)
-        tmp[i] = irgb[i] / (maxrgb[i] * (irgb[i] - imin));
+        tmp[i] = maxrgb[i] * (irgb[i] - imin);
+    /* avoid divisions by 0 */
+    for (i = 0; i < size; i++)
+        tmp[i] = (0 == tmp[i] ? -FLT_MIN : irgb[i] / tmp[i]);
     /*
      * sort and get alpha, the nb_max-th positive value
      * to be used as the scaling factor to saturate nb_max pixels
@@ -247,7 +253,7 @@ float *colorbalance_irgb_adjusted_f32(float *rgb, size_t size,
     while ((i < size) && (tmp[i] <= 0))
         i++;
     /* avoid out-of-bounds errors */
-    i = MIN(nb_max + i, size - 1);
+    i = MIN(i + nb_max, size - 1);
     alpha = tmp[i];
     beta = -alpha * imin;
     free(tmp);
