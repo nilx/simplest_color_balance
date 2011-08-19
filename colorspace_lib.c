@@ -406,6 +406,34 @@ static void _ycbcr2rgb(float y, float cb, float cr, float *r, float *g,
  */
 
 /**
+ * @brief Apply a scalar conversion function to two arrays.
+ *
+ * @param in input array
+ * @param out output array
+ * @param size array size
+ * @param func scalar function
+ */
+static void _vectorize(const float *in, float *out, size_t size,
+                       void (*func) (float, float, float, float *, float *,
+                                     float *))
+{
+    const float *in1, *in2, *in3;
+    float *out1, *out2, *out3;
+    size_t n;
+
+    in1 = in;
+    in2 = in + size;
+    in3 = in + 2 * size;
+    out1 = out;
+    out2 = out + size;
+    out3 = out + 2 * size;
+
+    for (n = 0; n < size; n++)
+        (*func) (in1[n], in2[n], in3[n], out1 + n, out2 + n, out3 + n);
+    return;
+}
+
+/**
  * @brief Convert an array from sRGB to Hue-Saturation-Lightness (HSL).
  *
  * This routine uses _rgb2hsl() on a float array with sRGB values
@@ -418,19 +446,7 @@ static void _ycbcr2rgb(float y, float cb, float cr, float *r, float *g,
  */
 void rgb2hsl(const float *rgb, float *hsl, size_t size)
 {
-    const float *r, *g, *b;
-    float *h, *s, *l;
-    size_t n;
-
-    r = rgb;
-    g = rgb + size;
-    b = rgb + 2 * size;
-    h = hsl;
-    s = hsl + size;
-    l = hsl + 2 * size;
-
-    for (n = 0; n < size; n++)
-        _rgb2hsl(r[n], g[n], b[n], h + n, s + n, l + n);
+    _vectorize(rgb, hsl, size, &_rgb2hsl);
     return;
 }
 
@@ -447,19 +463,7 @@ void rgb2hsl(const float *rgb, float *hsl, size_t size)
  */
 void hsl2rgb(const float *hsl, float *rgb, size_t size)
 {
-    const float *h, *s, *l;
-    float *r, *g, *b;
-    size_t n;
-
-    h = hsl;
-    s = hsl + size;
-    l = hsl + 2 * size;
-    r = rgb;
-    g = rgb + size;
-    b = rgb + 2 * size;
-
-    for (n = 0; n < size; n++)
-        _hsl2rgb(h[n], s[n], l[n], r + n, g + n, b + n);
+    _vectorize(hsl, rgb, size, &_hsl2rgb);
     return;
 }
 
@@ -476,19 +480,7 @@ void hsl2rgb(const float *hsl, float *rgb, size_t size)
  */
 void rgb2hsv(const float *rgb, float *hsv, size_t size)
 {
-    const float *r, *g, *b;
-    float *h, *s, *v;
-    size_t n;
-
-    r = rgb;
-    g = rgb + size;
-    b = rgb + 2 * size;
-    h = hsv;
-    s = hsv + size;
-    v = hsv + 2 * size;
-
-    for (n = 0; n < size; n++)
-        _rgb2hsv(r[n], g[n], b[n], h + n, s + n, v + n);
+    _vectorize(rgb, hsv, size, &_rgb2hsv);
     return;
 }
 
@@ -505,19 +497,7 @@ void rgb2hsv(const float *rgb, float *hsv, size_t size)
  */
 void hsv2rgb(const float *hsv, float *rgb, size_t size)
 {
-    const float *h, *s, *v;
-    float *r, *g, *b;
-    size_t n;
-
-    h = hsv;
-    s = hsv + size;
-    v = hsv + 2 * size;
-    r = rgb;
-    g = rgb + size;
-    b = rgb + 2 * size;
-
-    for (n = 0; n < size; n++)
-        _hsv2rgb(h[n], s[n], v[n], r + n, g + n, b + n);
+    _vectorize(hsv, rgb, size, &_hsv2rgb);
     return;
 }
 
@@ -534,19 +514,7 @@ void hsv2rgb(const float *hsv, float *rgb, size_t size)
  */
 void rgb2hsi(const float *rgb, float *hsi, size_t size)
 {
-    const float *r, *g, *b;
-    float *h, *s, *i;
-    size_t n;
-
-    r = rgb;
-    g = rgb + size;
-    b = rgb + 2 * size;
-    h = hsi;
-    s = hsi + size;
-    i = hsi + 2 * size;
-
-    for (n = 0; n < size; n++)
-        _rgb2hsi(r[n], g[n], b[n], h + n, s + n, i + n);
+    _vectorize(rgb, hsi, size, &_rgb2hsi);
     return;
 }
 
@@ -563,19 +531,7 @@ void rgb2hsi(const float *rgb, float *hsi, size_t size)
  */
 void hsi2rgb(const float *hsi, float *rgb, size_t size)
 {
-    const float *h, *s, *i;
-    float *r, *g, *b;
-    size_t n;
-
-    h = hsi;
-    s = hsi + size;
-    i = hsi + 2 * size;
-    r = rgb;
-    g = rgb + size;
-    b = rgb + 2 * size;
-
-    for (n = 0; n < size; n++)
-        _hsi2rgb(h[n], s[n], i[n], r + n, g + n, b + n);
+    _vectorize(hsi, rgb, size, &_hsi2rgb);
     return;
 }
 
@@ -592,19 +548,7 @@ void hsi2rgb(const float *hsi, float *rgb, size_t size)
  */
 void rgb2ycbcr(const float *rgb, float *ycbcr, size_t size)
 {
-    const float *r, *g, *b;
-    float *y, *cb, *cr;
-    size_t n;
-
-    r = rgb;
-    g = rgb + size;
-    b = rgb + 2 * size;
-    y = ycbcr;
-    cb = ycbcr + size;
-    cr = ycbcr + 2 * size;
-
-    for (n = 0; n < size; n++)
-        _rgb2ycbcr(r[n], g[n], b[n], y + n, cb + n, cr + n);
+    _vectorize(rgb, ycbcr, size, &_rgb2ycbcr);
     return;
 }
 
@@ -621,18 +565,6 @@ void rgb2ycbcr(const float *rgb, float *ycbcr, size_t size)
  */
 void ycbcr2rgb(const float *ycbcr, float *rgb, size_t size)
 {
-    const float *y, *cb, *cr;
-    float *r, *g, *b;
-    size_t n;
-
-    y = ycbcr;
-    cb = ycbcr + size;
-    cr = ycbcr + 2 * size;
-    r = rgb;
-    g = rgb + size;
-    b = rgb + 2 * size;
-
-    for (n = 0; n < size; n++)
-        _ycbcr2rgb(y[n], cb[n], cr[n], r + n, g + n, b + n);
+    _vectorize(ycbcr, rgb, size, &_ycbcr2rgb);
     return;
 }
