@@ -142,7 +142,7 @@ float *colorbalance_irgb_f32(float *rgb, size_t size,
     for (i = 0; i < size; i++) {
         m = MAX3(rgb[i], rgb[i + size], rgb[i + 2 * size]);
         s = inorm[i] / irgb[i];
-	/* if m * s > 1, a projection is needed by adjusting s */
+        /* if m * s > 1, a projection is needed by adjusting s */
         s = (1. < m * s ? 1. / m : s);
         rgb[i] *= s;
         rgb[i + size] *= s;

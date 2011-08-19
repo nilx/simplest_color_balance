@@ -23,7 +23,7 @@
 
  * The conversion code is derived from Pascal Getreuer's colorspace
  * conversion library; he explicitly allowed the re-licensing of the
- * RGB/HSL/HSV/HSI functions from BSD to GPL.
+ * RGB/HSL/HSV/HSI/Y'CbCr functions from BSD to GPL.
  * http://www.math.ucla.edu/~getreuer/colorspace.html
  *
  * @author Pascal Getreuer <pascal.getreuer@cmla.ens-cachan.fr>
@@ -318,9 +318,6 @@ static void _rgb2hsi(float r, float g, float b, float *h, float *s, float *i)
 /**
  * @brief Convert a Hue-Saturation-Intensity (HSI) color to sRGB
  *
- * @param R, G, B pointers to hold the result
- * @param H, S, I the input HSI values
- *
  * The input values are assumed to be scaled as
  *    0 <= H < 6,
  *    0 <= S <= 1,
@@ -352,6 +349,54 @@ static void _hsi2rgb(float h, float s, float i, float *r, float *g, float *b)
         *b = i * (1 + s * cos(h * (M_PI / 3)) / cos((1 - h) * (M_PI / 3)));
         *r = 3 * i - *g - *b;
     }
+    return;
+}
+
+/**
+ * @brief Convert a sRGB color to Luma (ITU-R BT.601) + Chroma (JPEG-Y'CbCr)
+ *
+ * This routine transforms from sRGB to the Y'CbCr color
+ * space.  The sRGB values are assumed to be between 0 and 1.  The
+ * output values are
+ *   Y'= luma         (0 <= Y' <= 1),
+ *   Cb, Cr = Chroma  (-0.5 <= Cb, Cr <= 0.5),
+ * The inverse color transformation is given by _ycbcr2rgb.
+ *
+ * @param r, g, b the input sRGB values scaled in [0,1]
+ * @param y, cb, cr pointers to hold the YCbCr result
+ * */
+static void _rgb2ycbcr(float r, float g, float b, float *y, float *cb,
+                       float *cr)
+{
+    *y = 0.299 * r + 0.587 * g + 0.114 * b;
+    *cb = -0.1687367 * r - 0.331264 * g + 0.5 * b - .5;
+    *cr = 0.5 * r - 0.418688 * g - 0.081312 * b - .5;
+    return;
+}
+
+/**
+ * @brief Convert a Luma+Chroma colo (JPEG-Y'CbCr) color to sRGB
+ *
+ * The input values are assumed to be scaled as
+ *    0 <= Y' <= 1,
+ *    -0.5 <= Cb,Cr <= 0.5,
+ * The output sRGB values are scaled between 0 and 1.  This is the
+ * inverse transformation of _rgb2ycbcr.
+ *
+ * @param y, cb, cr the input YCbCr values
+ * @param r, g, b pointers to hold the sRGB rewsult
+ * */
+static void _ycbcr2rgb(float y, float cb, float cr, float *r, float *g,
+                       float *b)
+{
+    *r = 0.99999999999914679361 * y - 1.2188941887145875e-06 * (cb + .5)
+        + 1.4019995886561440468 * (cr + .5);
+    *g = 0.99999975910502514331 * y
+        - 0.34413567816504303521 * (cb + .5) -
+        0.71413649331646789076 * (cr + .5);
+    *b = 1.00000124040004623180 * y
+        + 1.77200006607230409200 * (cb + .5) +
+        2.1453384174593273e-06 * (cr + .5);
     return;
 }
 
@@ -531,5 +576,63 @@ void hsi2rgb(const float *hsi, float *rgb, size_t size)
 
     for (n = 0; n < size; n++)
         _hsi2rgb(h[n], s[n], i[n], r + n, g + n, b + n);
+    return;
+}
+
+/**
+ * @brief Convert an array from sRGB to Luma-Chroma (Y'CbCr).
+ *
+ * This routine uses _rgb2ycbcr() on a float array with sRGB values
+ * in [0-UCHAR_MAX] to produce the equivalent float array
+ * with Y'CbCr values in [0-1]x[-.5-.5]x[-.5-.5].
+ *
+ * @param rgb input array
+ * @param ycbcr output array
+ * @param size array size
+ */
+void rgb2ycbcr(const float *rgb, float *ycbcr, size_t size)
+{
+    const float *r, *g, *b;
+    float *y, *cb, *cr;
+    size_t n;
+
+    r = rgb;
+    g = rgb + size;
+    b = rgb + 2 * size;
+    y = ycbcr;
+    cb = ycbcr + size;
+    cr = ycbcr + 2 * size;
+
+    for (n = 0; n < size; n++)
+        _rgb2ycbcr(r[n], g[n], b[n], y + n, cb + n, cr + n);
+    return;
+}
+
+/**
+ * @brief Convert an array from Luma-Chroma (Y'CbCr) to sRGB.
+ *
+ * This routine uses _ycbcr2rgb() on a float array with Y'CbCr values
+ * in [0-1]x[-.5-.5]x[-.5-.5] to produce the equivalent float array
+ * with sRGB values in [0-UCHAR_MAX].
+ *
+ * @param ycbcr input array
+ * @param rgb output array
+ * @param size array size
+ */
+void ycbcr2rgb(const float *ycbcr, float *rgb, size_t size)
+{
+    const float *y, *cb, *cr;
+    float *r, *g, *b;
+    size_t n;
+
+    y = ycbcr;
+    cb = ycbcr + size;
+    cr = ycbcr + 2 * size;
+    r = rgb;
+    g = rgb + size;
+    b = rgb + 2 * size;
+
+    for (n = 0; n < size; n++)
+        _ycbcr2rgb(y[n], cb[n], cr[n], r + n, g + n, b + n);
     return;
 }
