@@ -31,7 +31,7 @@
  *
  * @todo inline conversion functions
  * @todo probably lots of room for speed improvements
- * @todo use H in [0..2*PI]
+ * @todo use H in [0,2*PI]?
  */
 
 #include <stdlib.h>
@@ -409,8 +409,8 @@ static void _ycbcr2rgb(float y, float cb, float cr, float *r, float *g,
  * @brief Convert an array from sRGB to Hue-Saturation-Lightness (HSL).
  *
  * This routine uses _rgb2hsl() on a float array with sRGB values
- * in [0-UCHAR_MAX] to produce the equivalent float array
- * with HSL values in [0-6[x[0-1]x[0-1].
+ * in [0,UCHAR_MAX] to produce the equivalent float array
+ * with HSL values in [0,6[x[0,1]x[0,1].
  *
  * @param rgb input array
  * @param hsl output array
@@ -438,8 +438,8 @@ void rgb2hsl(const float *rgb, float *hsl, size_t size)
  * @brief Convert an array from Hue-Saturation-Lightness (HSL) to sRGB.
  *
  * This routine uses _hsl2rgb() on a float array with HSL values in
- * [0-6[x[0-1]x[0-1] to produce the equivalent float array with sRGB
- * values in [0-UCHAR_MAX].
+ * [0,6[x[0,1]x[0,1] to produce the equivalent float array with sRGB
+ * values in [0,UCHAR_MAX].
  *
  * @param hsl input array
  * @param rgb output array
@@ -467,8 +467,8 @@ void hsl2rgb(const float *hsl, float *rgb, size_t size)
  * @brief Convert an array from sRGB to Hue-Saturation-Value (HSV).
  *
  * This routine uses _rgb2hsv() on a float array with sRGB values
- * in [0-UCHAR_MAX] to produce the equivalent float array
- * with HSV values in [0-6[x[0-1]x[0-1].
+ * in [0,UCHAR_MAX] to produce the equivalent float array
+ * with HSV values in [0,6[x[0,1]x[0,1].
  *
  * @param rgb input array
  * @param hsv output array
@@ -496,8 +496,8 @@ void rgb2hsv(const float *rgb, float *hsv, size_t size)
  * @brief Convert an array from Hue-Saturation-Value (HSV) to sRGB.
  *
  * This routine uses _hsv2rgb() on a float array with HSV values in
- * [0-6[x[0-1]x[0-1] to produce the equivalent float array with sRGB
- * values in [0-UCHAR_MAX].
+ * [0,6[x[0,1]x[0,1] to produce the equivalent float array with sRGB
+ * values in [0,UCHAR_MAX].
  *
  * @param hsv input array
  * @param rgb output array
@@ -525,8 +525,8 @@ void hsv2rgb(const float *hsv, float *rgb, size_t size)
  * @brief Convert an array from sRGB to Hue-Saturation-Intensity (HSI).
  *
  * This routine uses _rgb2hsi() on a float array with sRGB values
- * in [0-UCHAR_MAX] to produce the equivalent float array
- * with HSI values in [0-6[x[0-1]x[0-1].
+ * in [0,UCHAR_MAX] to produce the equivalent float array
+ * with HSI values in [0,6[x[0,1]x[0,1].
  *
  * @param rgb input array
  * @param hsi output array
@@ -554,8 +554,8 @@ void rgb2hsi(const float *rgb, float *hsi, size_t size)
  * @brief Convert an array from Hue-Saturation-Intensity (HSI) to sRGB.
  *
  * This routine uses _hsi2rgb() on a float array with HSI values in
- * [0-6[x[0-1]x[0-1] to produce the equivalent float array with sRGB
- * values in [0-UCHAR_MAX].
+ * [0,6[x[0,1]x[0,1] to produce the equivalent float array with sRGB
+ * values in [0,UCHAR_MAX].
  *
  * @param hsi input array
  * @param rgb output array
@@ -583,8 +583,8 @@ void hsi2rgb(const float *hsi, float *rgb, size_t size)
  * @brief Convert an array from sRGB to Luma-Chroma (Y'CbCr).
  *
  * This routine uses _rgb2ycbcr() on a float array with sRGB values
- * in [0-UCHAR_MAX] to produce the equivalent float array
- * with Y'CbCr values in [0-1]x[-.5-.5]x[-.5-.5].
+ * in [0,UCHAR_MAX] to produce the equivalent float array
+ * with Y'CbCr values in [0,1]x[-.5,.5]x[-.5,.5].
  *
  * @param rgb input array
  * @param ycbcr output array
@@ -612,8 +612,8 @@ void rgb2ycbcr(const float *rgb, float *ycbcr, size_t size)
  * @brief Convert an array from Luma-Chroma (Y'CbCr) to sRGB.
  *
  * This routine uses _ycbcr2rgb() on a float array with Y'CbCr values
- * in [0-1]x[-.5-.5]x[-.5-.5] to produce the equivalent float array
- * with sRGB values in [0-UCHAR_MAX].
+ * in [0,1]x[-.5,.5]x[-.5,.5] to produce the equivalent float array
+ * with sRGB values in [0,UCHAR_MAX].
  *
  * @param ycbcr input array
  * @param rgb output array
