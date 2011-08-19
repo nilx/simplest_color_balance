@@ -13,7 +13,7 @@ _log_init
 echo "* check memory leaks"
 _log make -B
 TEMPFILE=$(tempfile)
-for MODE in rgb hsl hsv hsi irgb_bounded irgb_adjusted; do
+for MODE in rgb hsl hsv irgb_bounded irgb_adjusted; do
     _log _test_memcheck ./balance $MODE 0 0 data/colors.png $TEMPFILE
     _log _test_memcheck ./balance $MODE 23 42 data/colors.png $TEMPFILE
     _log _test_memcheck ./balance $MODE 50 50 data/colors.png $TEMPFILE

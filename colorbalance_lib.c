@@ -104,37 +104,6 @@ float *colorbalance_hsv_f32(float *rgb, size_t size,
 }
 
 /**
- * @brief simplest color balance in the HSI color space, I axis
- *
- * The input image is normalized by affine transformation on the I
- * axis, saturating a percentage of the pixels at the beginning and
- * end of the axis. The HSI cone is not stable by this operation, so
- * when the result is out of the RGB cube, a clipping will be
- * performed independently on each RGB channel (thus with some color
- * distortion).
- *
- * @todo merge with irgb_bounded, these 2 fonctions are identical
- */
-float *colorbalance_hsi_f32(float *rgb, size_t size,
-                            size_t nb_min, size_t nb_max)
-{
-    float *hsi;
-    size_t i;
-    /* convert to HSI */
-    hsi = (float *) malloc(3 * size * sizeof(float));
-    rgb2hsi(rgb, hsi, size);
-    /* normalize the I channel */
-    (void) balance_f32(hsi + 2 * size, size, nb_min, nb_max);
-    /* convert back to RGB */
-    hsi2rgb(hsi, rgb, size);
-    free(hsi);
-    /* clip RGB values to [0, 1]; overflow can only happen on 1 */
-    for (i = 0; i < 3 * size; i++)
-        rgb[i] = (rgb[i] > 1. ? 1. : rgb[i]);
-    return rgb;
-}
-
-/**
  * @brief simplest color balance based on the I axis applied to the
  * RGB channels, bounded
  *

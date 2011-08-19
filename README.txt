@@ -26,8 +26,6 @@ Five different modes are available for color images:
     the L lightness axis;
 * HSV: the balance is performed in the HSV color space cylinder, on
     the V value axis;
-* HSI: the balance is performed in the HSI color space cube, on the I
-    intensity axis, with clipping on the RGB channels;
 * IRGB bounded: the balance is performed on the I intensity axis, then
     the RGB channels are scaled proportionally, with clipping.
 * IRGB adjusted: the balance is performed on the I intensity axis, then
@@ -63,7 +61,7 @@ Alternatively, you can manually compile
 'balance' takes 5 parameters:
     `balance mode Sb Sw in.png out.png`
 
-* `mode`    : the algorithm variant, one of 'rgb', 'hsl', 'hsv', 'hsi',
+* `mode`    : the algorithm variant, one of 'rgb', 'hsl', 'hsv',
               'irgb_bounded' or 'irgb_adjusted'
 * `Sb`      : percentage of pixels saturated to black in the output image
 * `Sw`      : percentage of pixels saturated to white in the output image
