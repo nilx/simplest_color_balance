@@ -51,7 +51,7 @@ int main(int argc, char *const *argv)
     /* wrong number of parameters : simple help info */
     if (6 != argc) {
         fprintf(stderr, "usage : %s mode Sb Sw in.png out.png\n", argv[0]);
-        fprintf(stderr, "        mode is rgb, hsl, hsv or irgb\n");
+        fprintf(stderr, "        mode is rgb, hsl, hsv, irgb or ycbcr\n");
         fprintf(stderr, "          (see README.txt for details)\n");
         fprintf(stderr, "        Sb and Sw are percentage of pixels\n");
         fprintf(stderr, "          saturated to black and white,\n");
@@ -93,8 +93,10 @@ int main(int argc, char *const *argv)
         (void) colorbalance_hsv_f32(rgb, size, nb_min, nb_max);
     else if (0 == strcmp(argv[1], "irgb"))
         (void) colorbalance_irgb_f32(rgb, size, nb_min, nb_max);
+    else if (0 == strcmp(argv[1], "ycbcr"))
+        (void) colorbalance_ycbcr_f32(rgb, size, nb_min, nb_max);
     else {
-        fprintf(stderr, "mode must be rgb, hsl, hsv or irgb\n");
+        fprintf(stderr, "mode must be rgb, hsl, hsv, irgb or ycbcr\n");
         free(rgb);
         return EXIT_FAILURE;
     }

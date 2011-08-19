@@ -28,7 +28,9 @@ Five different modes are available for color images:
     the V value axis;
 * IRGB: the balance is performed on the I intensity axis, then
     the RGB channels are scaled proportionally, with a projection on
-    the RGB cube.
+    the RGB cube;
+* YCbCr: the balance is performed in the Y'CbCr color space, on
+    the Y' luma axis.
 
 Only 8bit RGB PNG images files are handled. Other PNG files are
 implicitly converted to 8bit color RGB.
@@ -57,7 +59,8 @@ Alternatively, you can manually compile
 'balance' takes 5 parameters:
     `balance mode Sb Sw in.png out.png`
 
-* `mode`    : the algorithm variant, one of 'rgb', 'hsl', 'hsv' or 'irgb'
+* `mode`    : the algorithm variant, one of 'rgb', 'hsl', 'hsv',
+              'irgb' or 'ycbcr'
 * `Sb`      : percentage of pixels saturated to black in the output image
 * `Sw`      : percentage of pixels saturated to white in the output image
               Sb and Sw must be in [0..100[ and Sb+Sw < 100
