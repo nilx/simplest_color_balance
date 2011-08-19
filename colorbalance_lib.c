@@ -103,6 +103,12 @@ float *colorbalance_hsv_f32(float *rgb, size_t size,
     return rgb;
 }
 
+/** @brief max of A and B */
+#define MAX(A,B) (((A) >= (B)) ? (A) : (B))
+
+/** @brief max of A, B, and C */
+#define MAX3(A,B,C) (((A) >= (B)) ? MAX(A,C) : MAX(B,C))
+
 /**
  * @brief simplest color balance based on the I axis applied to the
  * RGB channels, bounded
@@ -111,13 +117,14 @@ float *colorbalance_hsv_f32(float *rgb, size_t size,
  * axis, saturating a percentage of the pixels at the beginning and
  * end of the axis. This transformation is linearly applied to the R,
  * G and B channels. The RGB cube is not stable by this operation, so
- * some clipping will happen when the result is out of the RGB cube.
+ * some projections towards (0,0,0) on the RGB cube will be performed
+ * if needed.
  */
-float *colorbalance_irgb_bounded_f32(float *rgb, size_t size,
-                                     size_t nb_min, size_t nb_max)
+float *colorbalance_irgb_f32(float *rgb, size_t size,
+                             size_t nb_min, size_t nb_max)
 {
     float *irgb, *inorm;        /* intensity scale */
-    double s;
+    double s, m;
     size_t i;
     /** @todo compute I=R+G+B instead of (R+G+B)/3 to save a division */
     irgb = (float *) malloc(size * sizeof(float));
@@ -129,119 +136,19 @@ float *colorbalance_irgb_bounded_f32(float *rgb, size_t size,
     (void) balance_f32(inorm, size, nb_min, nb_max);
     /*
      * apply the I normalization to the RGB channels:
-     * RGB = RGB * Inorm / I
+     * RGB = RGB * Inorm / I, with a projection towards (0,0,0)
+     * on the RGB cube if needed
      */
     for (i = 0; i < size; i++) {
+        m = MAX3(rgb[i], rgb[i + size], rgb[i + 2 * size]);
         s = inorm[i] / irgb[i];
+	/* if m * s > 1, a projection is needed by adjusting s */
+        s = (1. < m * s ? 1. / m : s);
         rgb[i] *= s;
         rgb[i + size] *= s;
         rgb[i + 2 * size] *= s;
     }
-    /* clip RGB values to [0, 1]; overflow can only happen on 1 */
-    for (i = 0; i < 3 * size; i++)
-        rgb[i] = (rgb[i] > 1. ? 1. : rgb[i]);
     free(irgb);
     free(inorm);
-    return rgb;
-}
-
-/** @brief min of A and B */
-#define MIN(A,B) (((A) <= (B)) ? (A) : (B))
-
-/** @brief max of A and B */
-#define MAX(A,B) (((A) >= (B)) ? (A) : (B))
-
-/** @brief max of A, B, and C */
-#define MAX3(A,B,C) (((A) >= (B)) ? MAX(A,C) : MAX(B,C))
-
-/**
- * @brief double comparison
- *
- * @todo use integer ops, cf cmp_f32
- */
-static int cmp_f64(const void *a, const void *b)
-{
-    if (*(const double *) a > *(const double *) b)
-        return 1;
-    if (*(const double *) a < *(const double *) b)
-        return -1;
-    return 0;
-}
-
-/**
- * @brief simplest color balance based on the I axis applied to the
- * RGB channels, adjusted
- *
- * The input image is normalized by affine transformation on the I
- * axis, saturating a percentage of the pixels at the beginning and
- * end of the axis. This transformation is linearly applied to the R,
- * G and B channels. The RGB cube is not stable by this operation, so
- * to avoid clipping the linear scaling factors are adjusted to
- * maintain the R/G/B ratios.
- *
- * @todo explain I / (max(R, G, B) * (I - Imin))
- */
-float *colorbalance_irgb_adjusted_f32(float *rgb, size_t size,
-                                      size_t nb_min, size_t nb_max)
-{
-    float *maxrgb;
-    double *irgb, *tmp;
-    double imin, alpha, beta, s;
-    size_t i;
-
-    /* compute I=(R+G+B)/3 */
-    /** @todo work with I=R+G+B instead of (R+G+B)/3 to save a division */
-    irgb = (double *) malloc(size * sizeof(double));
-    tmp = (double *) malloc(size * sizeof(double));
-    for (i = 0; i < size; i++)
-        irgb[i] = (rgb[i] + rgb[i + size] + rgb[i + 2 * size]) / 3;
-    /*
-     * sort I and get Imin, the nb_min-th I value
-     * to be mapped to 0 in order to saturate nb_min pixels
-     */
-    memcpy(tmp, irgb, size * sizeof(double));
-    qsort(tmp, size, sizeof(double), &cmp_f64);
-    imin = tmp[nb_min];
-
-    /* compute  I / (max(R, G, B) * (I - Imin)) */
-    maxrgb = (float *) malloc(size * sizeof(float));
-    for (i = 0; i < size; i++)
-        maxrgb[i] = MAX3(rgb[i], rgb[i + size], rgb[i + 2 * size]);
-    for (i = 0; i < size; i++)
-        tmp[i] = maxrgb[i] * (irgb[i] - imin);
-    /* avoid divisions by 0 */
-    for (i = 0; i < size; i++)
-        tmp[i] = (0 == tmp[i] ? -FLT_MIN : irgb[i] / tmp[i]);
-    /*
-     * sort and get alpha, the nb_max-th positive value
-     * to be used as the scaling factor to saturate nb_max pixels
-     */
-    qsort(tmp, size, sizeof(double), &cmp_f64);
-    i = 0;
-    while ((i < size) && (tmp[i] <= 0))
-        i++;
-    /* avoid out-of-bounds errors */
-    i = MIN(i + nb_max, size - 1);
-    alpha = tmp[i];
-    beta = -alpha * imin;
-    free(tmp);
-
-    /* normalize I */
-    for (i = 0; i < size; i++) {
-        /* if I = 0, it will be mapped to a value <= 0 */
-        s = (0. == irgb[i] ? 0. : (alpha * irgb[i] + beta) / irgb[i]);
-        /*
-         * the scaling factor is adjusted
-         * such that R, G and B keep under 1 and are not truncated
-         */
-        s = MAX(s, 0.);
-        s = MIN(s, 1. / maxrgb[i]);
-        rgb[i] *= s;
-        rgb[i + size] *= s;
-        rgb[i + 2 * size] *= s;
-    }
-    free(irgb);
-    free(maxrgb);
-
     return rgb;
 }
