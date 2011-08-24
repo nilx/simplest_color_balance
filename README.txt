@@ -57,13 +57,13 @@ Alternatively, you can manually compile
 # USAGE
 
 'balance' takes 5 parameters:
-    `balance mode Sb Sw in.png out.png`
+    `balance mode Smin Smax in.png out.png`
 
 * `mode`    : the algorithm variant, one of 'rgb', 'hsl', 'hsv',
               'irgb' or 'ycbcr'
-* `Sb`      : percentage of pixels saturated to black in the output image
-* `Sw`      : percentage of pixels saturated to white in the output image
-              Sb and Sw must be in [0..100[ and Sb+Sw < 100
+* `Smin`    : percentage of pixels saturated to the min value
+* `Smax`    : percentage of pixels saturated to the max value
+              Smin and Smax must be in [0..100[ and Smin+Smax < 100
 * `in.png`  : input image
 * `out.png` : output image
               both images are PNG; you can use "-" for standard input/output
