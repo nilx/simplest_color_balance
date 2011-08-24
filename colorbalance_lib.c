@@ -42,15 +42,13 @@
  * The input image is normalized by affine transformation on each RGB
  * channel, saturating a percentage of the pixels at the beginning and
  * end of the color space on each channel.
- *
- * @todo integer and histogram-based alternative
  */
-float *colorbalance_rgb_f32(float *rgb, size_t size,
-                            size_t nb_min, size_t nb_max)
+unsigned char *colorbalance_rgb_u8(unsigned char *rgb, size_t size,
+                                   size_t nb_min, size_t nb_max)
 {
-    (void) balance_f32(rgb, size, nb_min, nb_max);
-    (void) balance_f32(rgb + size, size, nb_min, nb_max);
-    (void) balance_f32(rgb + 2 * size, size, nb_min, nb_max);
+    (void) balance_u8(rgb, size, nb_min, nb_max);
+    (void) balance_u8(rgb + size, size, nb_min, nb_max);
+    (void) balance_u8(rgb + 2 * size, size, nb_min, nb_max);
     return rgb;
 }
 
