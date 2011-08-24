@@ -38,10 +38,6 @@
 int main(int argc, char *const *argv)
 {
     float smin, smax;           /* saturated percentage */
-    size_t nx, ny, size;        /* data size */
-    size_t nb_min, nb_max;      /* number of saturated pixels */
-    float *rgb;                 /* input/output data */
-    size_t i;
 
     /* "-v" option : version info */
     if (2 <= argc && 0 == strcmp("-v", argv[1])) {
@@ -68,40 +64,61 @@ int main(int argc, char *const *argv)
         return EXIT_FAILURE;
     }
 
-    /* read the PNG image in [0-1] */
-    /** @todo correct io_png API */
-    if (NULL == (rgb = io_png_read_f32_rgb(argv[4], &nx, &ny))) {
-        fprintf(stderr, "the image could not be properly read\n");
-        return EXIT_FAILURE;
-    }
-    size = nx * ny;
-    for (i = 0; i < 3 * size; i++)
-        rgb[i] /= 255.;
-
-    /*
-     * we saturate nb_min pixels on bottom
-     * and nb_max pixels on the top of the histogram
-     */
-    nb_min = size * (smin / 100.);
-    nb_max = size * (smax / 100.);
-
     /* select the color mode and execute the algorithm */
-    if (0 == strcmp(argv[1], "rgb"))
-        (void) colorbalance_rgb_f32(rgb, size, nb_min, nb_max);
-    else if (0 == strcmp(argv[1], "irgb"))
-        (void) colorbalance_irgb_f32(rgb, size, nb_min, nb_max);
+    if (0 == strcmp(argv[1], "rgb")) {
+        size_t nx, ny, size, i; /* data size and index */
+        float *rgb;             /* input/output data */
+
+        /* read the PNG image in [0-1] */
+        /** @todo correct io_png API */
+        if (NULL == (rgb = io_png_read_f32_rgb(argv[4], &nx, &ny))) {
+            fprintf(stderr, "the image could not be properly read\n");
+            return EXIT_FAILURE;
+        }
+        size = nx * ny;
+        for (i = 0; i < 3 * size; i++)
+            rgb[i] /= 255.;
+
+        (void) colorbalance_rgb_f32(rgb, size,
+                                    size * (smin / 100.),
+                                    size * (smax / 100.));
+
+        /* write the PNG image from [0,1] and free the memory space */
+        /** @todo correct io_png API */
+        for (i = 0; i < 3 * size; i++)
+            rgb[i] *= 255.;
+        io_png_write_f32(argv[5], rgb, nx, ny, 3);
+        free(rgb);
+    }
+    else if (0 == strcmp(argv[1], "irgb")) {
+        size_t nx, ny, size, i; /* data size and index */
+        float *rgb;             /* input/output data */
+
+        /* read the PNG image in [0-1] */
+        /** @todo correct io_png API */
+        if (NULL == (rgb = io_png_read_f32_rgb(argv[4], &nx, &ny))) {
+            fprintf(stderr, "the image could not be properly read\n");
+            return EXIT_FAILURE;
+        }
+        size = nx * ny;
+        for (i = 0; i < 3 * size; i++)
+            rgb[i] /= 255.;
+
+        (void) colorbalance_irgb_f32(rgb, size,
+                                     size * (smin / 100.),
+                                     size * (smax / 100.));
+
+        /* write the PNG image from [0,1] and free the memory space */
+        /** @todo correct io_png API */
+        for (i = 0; i < 3 * size; i++)
+            rgb[i] *= 255.;
+        io_png_write_f32(argv[5], rgb, nx, ny, 3);
+        free(rgb);
+    }
     else {
         fprintf(stderr, "mode must be rgb or irgb\n");
-        free(rgb);
         return EXIT_FAILURE;
     }
-
-    /* write the PNG image from [0,1] and free the memory space */
-    /** @todo correct io_png API */
-    for (i = 0; i < 3 * size; i++)
-        rgb[i] *= 255.;
-    io_png_write_f32(argv[5], rgb, nx, ny, 3);
-    free(rgb);
 
     return EXIT_SUCCESS;
 }
