@@ -8,17 +8,8 @@ _test_run() {
     ./balance rgb 10 20 data/colors.png $TEMPFILE
     test "d704c1bcad2fe1d91ea1ba1f05c39efd  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
-    ./balance hsl 10 20 data/colors.png $TEMPFILE
-    test "2d3389e3e3b6638c3c43912a58cc2ac4  $TEMPFILE" \
-	= "$(md5sum $TEMPFILE)"
-    ./balance hsv 10 20 data/colors.png $TEMPFILE
-    test "3405cb7190fa14ba2d13d547e978c7ee  $TEMPFILE" \
-	= "$(md5sum $TEMPFILE)"
     ./balance irgb 10 20 data/colors.png $TEMPFILE
     test "99ea4d127566b8dfd7f66707da5856da  $TEMPFILE" \
-	= "$(md5sum $TEMPFILE)"
-    ./balance ycbcr 10 20 data/colors.png $TEMPFILE
-    test "8aaeb123b37f460df2f82114e234fdc8  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     rm -f $TEMPFILE
 }

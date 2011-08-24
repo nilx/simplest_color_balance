@@ -50,8 +50,9 @@ int main(int argc, char *const *argv)
     }
     /* wrong number of parameters : simple help info */
     if (6 != argc) {
-        fprintf(stderr, "usage : %s mode Smin Smax in.png out.png\n", argv[0]);
-        fprintf(stderr, "        mode is rgb, hsl, hsv, irgb or ycbcr\n");
+        fprintf(stderr, "usage : %s mode Smin Smax in.png out.png\n",
+                argv[0]);
+        fprintf(stderr, "        mode is rgb or irgb\n");
         fprintf(stderr, "          (see README.txt for details)\n");
         fprintf(stderr, "        Smin and Smax are percentage of pixels\n");
         fprintf(stderr, "          saturated to min and max,\n");
@@ -87,16 +88,10 @@ int main(int argc, char *const *argv)
     /* select the color mode and execute the algorithm */
     if (0 == strcmp(argv[1], "rgb"))
         (void) colorbalance_rgb_f32(rgb, size, nb_min, nb_max);
-    else if (0 == strcmp(argv[1], "hsl"))
-        (void) colorbalance_hsl_f32(rgb, size, nb_min, nb_max);
-    else if (0 == strcmp(argv[1], "hsv"))
-        (void) colorbalance_hsv_f32(rgb, size, nb_min, nb_max);
     else if (0 == strcmp(argv[1], "irgb"))
         (void) colorbalance_irgb_f32(rgb, size, nb_min, nb_max);
-    else if (0 == strcmp(argv[1], "ycbcr"))
-        (void) colorbalance_ycbcr_f32(rgb, size, nb_min, nb_max);
     else {
-        fprintf(stderr, "mode must be rgb, hsl, hsv, irgb or ycbcr\n");
+        fprintf(stderr, "mode must be rgb or irgb\n");
         free(rgb);
         return EXIT_FAILURE;
     }

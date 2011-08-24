@@ -32,7 +32,6 @@
 #include <float.h>
 
 #include "balance_lib.h"
-#include "colorspace_lib.h"
 
 /* ensure consistency */
 #include "colorbalance_lib.h"
@@ -52,54 +51,6 @@ float *colorbalance_rgb_f32(float *rgb, size_t size,
     (void) balance_f32(rgb, size, nb_min, nb_max);
     (void) balance_f32(rgb + size, size, nb_min, nb_max);
     (void) balance_f32(rgb + 2 * size, size, nb_min, nb_max);
-    return rgb;
-}
-
-/**
- * @brief simplest color balance in the HSL color space, L axis
- *
- * The input image is normalized by affine transformation on the L
- * axis, saturating a percentage of the pixels at the beginning and
- * end of the axis.
- *
- * @todo compute L from RGB, then compute new RGB from RGB and new L
- */
-float *colorbalance_hsl_f32(float *rgb, size_t size,
-                            size_t nb_min, size_t nb_max)
-{
-    float *hsl;
-    /* convert to HSL */
-    hsl = (float *) malloc(3 * size * sizeof(float));
-    rgb2hsl(rgb, hsl, size);
-    /* normalize the L channel */
-    (void) balance_f32(hsl + 2 * size, size, nb_min, nb_max);
-    /* convert back to RGB */
-    hsl2rgb(hsl, rgb, size);
-    free(hsl);
-    return rgb;
-}
-
-/**
- * @brief simplest color balance in the HSV color space, V axis
- *
- * The input image is normalized by affine transformation on the V
- * axis, saturating a percentage of the pixels at the beginning and
- * end of the axis.
- *
- * @todo compute V from RGB, then compute new RGB from RGB and new V
- */
-float *colorbalance_hsv_f32(float *rgb, size_t size,
-                            size_t nb_min, size_t nb_max)
-{
-    float *hsv;
-    /* convert to HSV */
-    hsv = (float *) malloc(3 * size * sizeof(float));
-    rgb2hsv(rgb, hsv, size);
-    /* normalize the V channel */
-    (void) balance_f32(hsv + 2 * size, size, nb_min, nb_max);
-    /* convert back to RGB */
-    hsv2rgb(hsv, rgb, size);
-    free(hsv);
     return rgb;
 }
 
@@ -150,29 +101,5 @@ float *colorbalance_irgb_f32(float *rgb, size_t size,
     }
     free(irgb);
     free(inorm);
-    return rgb;
-}
-
-/**
- * @brief simplest color balance in the Y'CbCr color space, Y' axis
- *
- * The input image is normalized by affine transformation on the Y'
- * axis, saturating a percentage of the pixels at the beginning and
- * end of the axis.
- *
- * @todo compute Y' from RGB, then compute new RGB from RGB and new Y'
- */
-float *colorbalance_ycbcr_f32(float *rgb, size_t size,
-                              size_t nb_min, size_t nb_max)
-{
-    float *ycbcr;
-    /* convert to Y'CbCr */
-    ycbcr = (float *) malloc(3 * size * sizeof(float));
-    rgb2ycbcr(rgb, ycbcr, size);
-    /* normalize the Y' channel */
-    (void) balance_f32(ycbcr, size, nb_min, nb_max);
-    /* convert back to RGB */
-    ycbcr2rgb(ycbcr, rgb, size);
-    free(ycbcr);
     return rgb;
 }

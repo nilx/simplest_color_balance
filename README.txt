@@ -20,17 +20,11 @@ such that a user-defined number of pixels are scaled over the color
 space limits [0..255]. These pixels are replaced by the 0 or 255
 value, and these values are written as a PNG image.
 
-Five different modes are available for color images:
+Two different modes are available for color images:
 * RGB: the R, G and B channels are balanced independently;
-* HSL: the balance is performed in the HSL color space cylinder, on
-    the L lightness axis;
-* HSV: the balance is performed in the HSV color space cylinder, on
-    the V value axis;
 * IRGB: the balance is performed on the I intensity axis, then
     the RGB channels are scaled proportionally, with a projection on
-    the RGB cube;
-* YCbCr: the balance is performed in the Y'CbCr color space, on
-    the Y' luma axis.
+    the RGB cube.
 
 Only 8bit RGB PNG images files are handled. Other PNG files are
 implicitly converted to 8bit color RGB.
@@ -51,7 +45,7 @@ Simply use the provided makefile, with the command `make`. Some of the
 default compiler flags in the makefile are specific to the gcc
 compiler family and can be avoided by `make CFLAGS=`.
 Alternatively, you can manually compile
-    cc io_png.c balance_lib.c colorbalance_lib.c colorspace_lib.c \
+    cc io_png.c balance_lib.c colorbalance_lib.c \
         balance.c -lpng -o balance
 
 # USAGE
@@ -59,8 +53,7 @@ Alternatively, you can manually compile
 'balance' takes 5 parameters:
     `balance mode Smin Smax in.png out.png`
 
-* `mode`    : the algorithm variant, one of 'rgb', 'hsl', 'hsv',
-              'irgb' or 'ycbcr'
+* `mode`    : the algorithm variant, 'rgb' or 'irgb'
 * `Smin`    : percentage of pixels saturated to the min value
 * `Smax`    : percentage of pixels saturated to the max value
               Smin and Smax must be in [0..100[ and Smin+Smax < 100
@@ -73,7 +66,6 @@ Alternatively, you can manually compile
 * balance.c            : command-line handler
 * balance_lib.c/h      : base algorithm in one dimension
 * colorbalance_lib.c/h : algorithm variants for color images
-* colorspace_lib.c/h   : colorspace conversion tools
 * io_png.c/h           : simplified interface to libpng
 * makefile             : build configuration
 * test                 : automates test scripts
@@ -81,11 +73,6 @@ Alternatively, you can manually compile
 * GPLv3.txt            : source code license
 * doc                  : doxygen files
 * README.txt           : this file
-
-# CREDITS
-
-This code uses the color conversion code from Pascal Getreuer's
-colorspace library: http://www.math.ucla.edu/~getreuer/colorspace.html
 
 # ABOUT THIS FILE
 
