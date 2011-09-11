@@ -32,6 +32,7 @@
 #include <float.h>
 
 #include "balance_lib.h"
+#include "debug.h"
 
 /* ensure consistency */
 #include "colorbalance_lib.h"
@@ -46,9 +47,15 @@
 unsigned char *colorbalance_rgb_u8(unsigned char *rgb, size_t size,
                                    size_t nb_min, size_t nb_max)
 {
+    DBG_CLOCK_RESET();
+
     (void) balance_u8(rgb, size, nb_min, nb_max);
     (void) balance_u8(rgb + size, size, nb_min, nb_max);
     (void) balance_u8(rgb + 2 * size, size, nb_min, nb_max);
+
+    DBG_CLOCK_TOGGLE();
+    DBG_PRINTF1("rgb\t%0.2fs\n", DBG_CLOCK_S());
+
     return rgb;
 }
 
@@ -75,6 +82,9 @@ float *colorbalance_irgb_f32(float *rgb, size_t size,
     float *irgb, *inorm;        /* intensity scale */
     double s, m;
     size_t i;
+
+    DBG_CLOCK_START();
+
     /** @todo compute I=R+G+B instead of (R+G+B)/3 to save a division */
     irgb = (float *) malloc(size * sizeof(float));
     for (i = 0; i < size; i++)
@@ -99,5 +109,9 @@ float *colorbalance_irgb_f32(float *rgb, size_t size,
     }
     free(irgb);
     free(inorm);
+
+    DBG_CLOCK_TOGGLE();
+    DBG_PRINTF1("irgb\t%0.2fs\n", DBG_CLOCK_S());
+
     return rgb;
 }

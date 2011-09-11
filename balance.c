@@ -31,6 +31,7 @@
 
 #include "io_png.h"
 #include "colorbalance_lib.h"
+#include "debug.h"
 
 /**
  * @brief main function call
@@ -70,10 +71,13 @@ int main(int argc, char *const *argv)
         unsigned char *rgb;     /* input/output data */
 
         /* read the PNG image in [0-UCHAR_MAX] */
+        DBG_CLOCK_START();
         if (NULL == (rgb = io_png_read_u8_rgb(argv[4], &nx, &ny))) {
             fprintf(stderr, "the image could not be properly read\n");
             return EXIT_FAILURE;
         }
+        DBG_CLOCK_TOGGLE();
+        DBG_PRINTF1("read\t%0.2fs\n", DBG_CLOCK_S());
         size = nx * ny;
 
         /* execute the algorithm */
@@ -82,7 +86,10 @@ int main(int argc, char *const *argv)
                                    size * (smax / 100.));
 
         /* write the PNG image from [0,UCHAR_MAX] and free the memory space */
+        DBG_CLOCK_START();
         io_png_write_u8(argv[5], rgb, nx, ny, 3);
+        DBG_CLOCK_TOGGLE();
+        DBG_PRINTF1("write\t%0.2fs\n", DBG_CLOCK_S());
         free(rgb);
     }
     else if (0 == strcmp(argv[1], "irgb")) {
@@ -90,10 +97,13 @@ int main(int argc, char *const *argv)
 
         /* read the PNG image in [0-1] */
         /** @todo correct io_png API */
+        DBG_CLOCK_START();
         if (NULL == (rgb = io_png_read_f32_rgb(argv[4], &nx, &ny))) {
             fprintf(stderr, "the image could not be properly read\n");
             return EXIT_FAILURE;
         }
+        DBG_CLOCK_TOGGLE();
+        DBG_PRINTF1("read\t%0.2fs\n", DBG_CLOCK_S());
         size = nx * ny;
         for (i = 0; i < 3 * size; i++)
             rgb[i] /= 255.;
@@ -107,7 +117,10 @@ int main(int argc, char *const *argv)
         /** @todo correct io_png API */
         for (i = 0; i < 3 * size; i++)
             rgb[i] *= 255.;
+        DBG_CLOCK_START();
         io_png_write_f32(argv[5], rgb, nx, ny, 3);
+        DBG_CLOCK_TOGGLE();
+        DBG_PRINTF1("write\t%0.2fs\n", DBG_CLOCK_S());
         free(rgb);
     }
     else {

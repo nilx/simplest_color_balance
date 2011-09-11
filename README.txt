@@ -45,8 +45,11 @@ Simply use the provided makefile, with the command `make`. Some of the
 default compiler flags in the makefile are specific to the gcc
 compiler family and can be avoided by `make CFLAGS=`.
 Alternatively, you can manually compile
-    cc io_png.c balance_lib.c colorbalance_lib.c \
+    cc -DNDEBUG io_png.c balance_lib.c colorbalance_lib.c \
         balance.c -lpng -o balance
+
+Omit the -DNDEBUG option to get some debugging information when you
+run the program.
 
 # USAGE
 
