@@ -71,10 +71,10 @@ int main(int argc, char *const *argv)
         unsigned char *rgb;     /* input/output data */
 
         /* read the PNG image in [0-UCHAR_MAX] */
-        DBG_CLOCK_START();
+        DBG_CLOCK_START(0);
         rgb = io_png_read_pp_uchar(argv[4], &nx, &ny, NULL, IO_PNG_OPT_RGB);
-        DBG_CLOCK_TOGGLE();
-        DBG_PRINTF1("read\t%0.2fs\n", DBG_CLOCK_S());
+        DBG_CLOCK_TOGGLE(0);
+        DBG_PRINTF1("read\t%0.2fs\n", DBG_CLOCK_S(0));
         size = nx * ny;
 
         /* execute the algorithm */
@@ -83,20 +83,20 @@ int main(int argc, char *const *argv)
                                    size * (smax / 100.));
 
         /* write the PNG image from [0,UCHAR_MAX] and free the memory space */
-        DBG_CLOCK_START();
+        DBG_CLOCK_START(0);
         io_png_write_uchar(argv[5], rgb, nx, ny, 3);
-        DBG_CLOCK_TOGGLE();
-        DBG_PRINTF1("write\t%0.2fs\n", DBG_CLOCK_S());
+        DBG_CLOCK_TOGGLE(0);
+        DBG_PRINTF1("write\t%0.2fs\n", DBG_CLOCK_S(0));
         free(rgb);
     }
     else if (0 == strcmp(argv[1], "irgb")) {
         float *rgb;             /* input/output data */
 
         /* read the PNG image in [0-1] */
-        DBG_CLOCK_START();
+        DBG_CLOCK_START(0);
         rgb = io_png_read_pp_flt(argv[4], &nx, &ny, NULL, IO_PNG_OPT_RGB);
-        DBG_CLOCK_TOGGLE();
-        DBG_PRINTF1("read\t%0.2fs\n", DBG_CLOCK_S());
+        DBG_CLOCK_TOGGLE(0);
+        DBG_PRINTF1("read\t%0.2fs\n", DBG_CLOCK_S(0));
         size = nx * ny;
 
         /* execute the algorithm */
@@ -105,10 +105,10 @@ int main(int argc, char *const *argv)
                                      size * (smax / 100.));
 
         /* write the PNG image from [0,1] and free the memory space */
-        DBG_CLOCK_START();
+        DBG_CLOCK_START(0);
         io_png_write_flt(argv[5], rgb, nx, ny, 3);
-        DBG_CLOCK_TOGGLE();
-        DBG_PRINTF1("write\t%0.2fs\n", DBG_CLOCK_S());
+        DBG_CLOCK_TOGGLE(0);
+        DBG_PRINTF1("write\t%0.2fs\n", DBG_CLOCK_S(0));
         free(rgb);
     }
     else {

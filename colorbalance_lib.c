@@ -47,14 +47,14 @@
 unsigned char *colorbalance_rgb_u8(unsigned char *rgb, size_t size,
                                    size_t nb_min, size_t nb_max)
 {
-    DBG_CLOCK_RESET();
+    DBG_CLOCK_RESET(0);
 
     (void) balance_u8(rgb, size, nb_min, nb_max);
     (void) balance_u8(rgb + size, size, nb_min, nb_max);
     (void) balance_u8(rgb + 2 * size, size, nb_min, nb_max);
 
-    DBG_CLOCK_TOGGLE();
-    DBG_PRINTF1("rgb\t%0.2fs\n", DBG_CLOCK_S());
+    DBG_CLOCK_TOGGLE(0);
+    DBG_PRINTF1("rgb\t%0.2fs\n", DBG_CLOCK_S(0));
 
     return rgb;
 }
@@ -83,7 +83,7 @@ float *colorbalance_irgb_f32(float *rgb, size_t size,
     double s, m;
     size_t i;
 
-    DBG_CLOCK_START();
+    DBG_CLOCK_START(0);
 
     /** @todo compute I=R+G+B instead of (R+G+B)/3 to save a division */
     irgb = (float *) malloc(size * sizeof(float));
@@ -110,8 +110,8 @@ float *colorbalance_irgb_f32(float *rgb, size_t size,
     free(irgb);
     free(inorm);
 
-    DBG_CLOCK_TOGGLE();
-    DBG_PRINTF1("irgb\t%0.2fs\n", DBG_CLOCK_S());
+    DBG_CLOCK_TOGGLE(0);
+    DBG_PRINTF1("irgb\t%0.2fs\n", DBG_CLOCK_S(0));
 
     return rgb;
 }
