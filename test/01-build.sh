@@ -19,7 +19,7 @@ _test_run() {
 _log_init
 
 echo "* default build, clean, rebuild"
-_log make -B CFLAGS+=-UNDEBUG
+_log make -B debug
 _log _test_run
 _log make -B
 _log _test_run
