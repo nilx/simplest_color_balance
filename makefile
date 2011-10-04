@@ -15,18 +15,20 @@ OBJ	= $(SRC:.c=.o)
 BIN	= balance
 
 # standard C compiler optimization options
-COPT	= -O3 -DNDEBUG
+COPT	= -O3
 # complete C compiler options
 CFLAGS	= -ansi -pedantic -Wall -Wextra -Werror -pipe $(COPT)
+# preprocessor options
+CPPFLAGS	= -DNDEBUG
 # linker options
-LDFLAGS	+= -lpng
+LDFLAGS	= -lpng
 
 # default target: the binary executable programs
 default: $(BIN)
 
 # partial C compilation xxx.c -> xxx.o
 %.o	: %.c
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) -c -o $@ $< $(CFLAGS) $(CPPFLAGS)
 
 # final link
 balance	: io_png.o balance_lib.o colorbalance_lib.o balance.o
