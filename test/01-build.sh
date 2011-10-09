@@ -33,10 +33,6 @@ for CC in cc c++ c99 gcc g++ tcc nwcc clang icc pathcc suncc; do
     echo "* $CC compiler"
     _log make distclean
     case $CC in
-	"gcc"|"g++")
-	    _log make CC=$CC ;;
-	"c99")
-	    _log make CC=$CC CCFLAGS=-DNDEBUG;;
 	"icc")
 	    # default icc behaviour is wrong divisions!
 	    _log make CC=$CC CFLAGS="-fp-model precise";;
