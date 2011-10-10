@@ -28,7 +28,7 @@ _log make clean
 _log make
 
 echo "* compiler support"
-for CC in cc c++ c99 gcc g++ tcc nwcc clang icc pathcc suncc; do
+for CC in cc c++ c89 c99 gcc g++ tcc nwcc clang icc pathcc suncc; do
     which $CC || continue
     echo "* $CC compiler"
     _log make distclean
@@ -37,7 +37,7 @@ for CC in cc c++ c99 gcc g++ tcc nwcc clang icc pathcc suncc; do
 	    # default icc behaviour is wrong divisions!
 	    _log make CC=$CC CFLAGS="-fp-model precise";;
 	*)
-	    _log make CC=$CC CFLAGS= ;;
+	    _log make CC=$CC ;;
     esac
     _log _test_run
 done
