@@ -1,0 +1,5 @@
+io_png.o: io_png.c io_png.h
+balance_lib.o: balance_lib.c balance_lib.h
+colorbalance_lib.o: colorbalance_lib.c balance_lib.h debug.h \
+ colorbalance_lib.h
+balance.o: balance.c io_png.h colorbalance_lib.h debug.h
