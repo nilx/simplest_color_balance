@@ -72,7 +72,7 @@ int main(int argc, char *const *argv)
 
         /* read the PNG image in [0-UCHAR_MAX] */
         DBG_CLOCK_START(0);
-        rgb = io_png_read_pp_uchar(argv[4], &nx, &ny, NULL, IO_PNG_OPT_RGB);
+        rgb = io_png_read_uchar_opt(argv[4], &nx, &ny, NULL, IO_PNG_OPT_RGB);
         DBG_CLOCK_TOGGLE(0);
         DBG_PRINTF1("read\t%0.2fs\n", DBG_CLOCK_S(0));
         size = nx * ny;
@@ -94,7 +94,7 @@ int main(int argc, char *const *argv)
 
         /* read the PNG image in [0-1] */
         DBG_CLOCK_START(0);
-        rgb = io_png_read_pp_flt(argv[4], &nx, &ny, NULL, IO_PNG_OPT_RGB);
+        rgb = io_png_read_flt_opt(argv[4], &nx, &ny, NULL, IO_PNG_OPT_RGB);
         DBG_CLOCK_TOGGLE(0);
         DBG_PRINTF1("read\t%0.2fs\n", DBG_CLOCK_S(0));
         size = nx * ny;

@@ -6,10 +6,16 @@
 _test_run() {
     TEMPFILE=$(tempfile)
     ./balance rgb 10 20 data/colors.png $TEMPFILE
-    test "d704c1bcad2fe1d91ea1ba1f05c39efd  $TEMPFILE" \
+    test "3624544f3ba96489eb45d2ae7042e640  $TEMPFILE" \
+	= "$(md5sum $TEMPFILE)"
+    ./balance rgb 10 20 - - < data/colors.png > $TEMPFILE
+    test "3624544f3ba96489eb45d2ae7042e640  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     ./balance irgb 10 20 data/colors.png $TEMPFILE
-    test "99ea4d127566b8dfd7f66707da5856da  $TEMPFILE" \
+    test "4b271d168e536d5a916ba5a03889f763  $TEMPFILE" \
+	= "$(md5sum $TEMPFILE)"
+    ./balance irgb 10 20 - - < data/colors.png > $TEMPFILE
+    test "4b271d168e536d5a916ba5a03889f763  $TEMPFILE" \
 	= "$(md5sum $TEMPFILE)"
     rm -f $TEMPFILE
 }
