@@ -163,7 +163,7 @@ static void quantiles_u8(const unsigned char *data, size_t size,
  *
  * IEEE754 floats can be compared as integers. Not *converted* to
  * integers, but *read* as integers while maintaining an order.
- * cf. http://www.cygnus-software.com/papers/comparingfloats/Comparing%20floating%20point%20numbers.htm#_Toc135149455
+ * cf. https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
  */
 static int cmp_f32(const void *a, const void *b)
 {
